@@ -1,0 +1,26 @@
+cube_id,puzzle_id,camera_id,scramble
+cube_0001,1,1,B' L' U2 F R2 F2 L2 U' L' U' D' F R U' B' F R2 F' L' F' U D' F' B2 R
+cube_0002,2,1,R' L F' B' L B2 F' D R2 D' L F' B' D2 R' F' L' U2 L2 F' B2 R2 B2 F D2
+cube_0003,1,1,L2 B F2 R' U R2 D U R D R' F2 D R U2 L2 D R' B2 D R' D R2 B L2
+cube_0004,2,1,R2 B' F2 L2 U' D R2 L' F2 B' L2 D' L U L F D2 U2 B2 D' L' F D2 F R
+cube_0005,1,1,R' U2 L D R' L' D U2 L D' F' B2 D' F2 R' L2 B' F' D2 U F' D U F2 D'
+cube_0006,2,1,U D2 B2 F2 D R2 D' R2 L2 B2 L2 R B R D2 L' R2 D' B2 L' F R' D' L B'
+cube_0007,1,1,R U' D F L R U' F' D2 B2 U D' R' F U' R U2 D F2 D L' D2 R' F L2
+cube_0008,2,1,L B2 F2 R2 F' R2 D2 U R2 B2 L' B U' B' D' R F U' D' F' L F L2 U2 B'
+cube_0009,1,1,R' B2 D L2 F B2 R2 L' D F U D' R2 F D2 U' B U D2 R D2 U2 B D B
+cube_0010,2,1,L' B2 U' D' R D' B2 L' U2 D2 B R' B D2 R2 D2 U2 R U2 F2 L' R' U L R
+cube_0011,1,1,D' L2 D' F' D L' D F' U' B2 D2 R' F' L2 B' L D2 B D U2 B L2 U2 R' B'
+cube_0012,2,1,L2 R' D' B' U2 D R U' R F2 D B' L R' U' R B' U2 R2 L2 U L D F' D2
+cube_0013,1,1,U F L U' B2 U2 D2 L' F B D2 U R' U L F' L' B D R2 B U2 B2 D2 B2
+cube_0014,2,1,B2 F U2 B' L' R' B' R2 U L D2 B2 U2 F' L' U R2 F L2 F' L D' B2 F' U2
+cube_0015,1,1,D L' F R' U' F L2 F D' F B' D2 U2 B' U2 F' U' D R F D' L2 D L2 U2
+cube_0016,2,1,U' R B2 D2 L2 R2 U' R' U2 L D' L U2 B2 D F' B2 U' F L2 B U2 B' D U2
+cube_0017,1,1,D B2 L2 F L' F2 R' B' L U D' R' D R' B F L B' F R' D2 L F R2 L
+cube_0018,2,1,U L' F2 L U2 F B2 D B2 U L' F' U' B R L F U' B U' L2 U' L2 R U2
+cube_0019,1,1,R' D2 U' F2 R2 B' D2 B2 D U F D F' U2 D' R L U2 F2 B R' D' B2 F2 R2
+cube_0020,2,1,R' D2 B2 F' R' U' L' R' B' F D' R2 F B2 U' D' B D U2 L' B' L F R L2
+cube_0021,1,1,U R' F' U D' B D F2 L2 U2 F' B U B2 F2 U2 R2 D' U' B' R' L2 D F D
+cube_0022,2,1,L2 D' R2 U2 B' R L B2 D2 U2 R' U D R D' L' U2 D' R L' D' F L2 B' R'
+cube_0023,1,1,L2 R2 U D2 L D B L' B2 L2 B2 R' D' U' B' R2 B L D F2 L F' B R F
+cube_0024,2,1,B2 U F' U F' U' B' L B F' U F' R2 D' R2 U2 D B L D U' F2 B' R D'
+cube_0025,1,1,R2 U2 F2 L' R U' L' D B2 R' L2 U2 B' F2 U L F2 L2 F2 B U2 F' B2 R D
