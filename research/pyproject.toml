@@ -52,8 +52,15 @@ force-sort-within-sections = true
 [tool.ruff.lint.per-file-ignores]
 "notebooks/*" = ["E402"] # allow imports in all notebook cells
 
+[tool.pyright]
+include = ["puzzle_vision", "tests"]
+venvPath = "."
+venv = ".venv"
+typeCheckingMode = "basic"
+
 [dependency-groups]
 dev = [
+    "pyright>=1.1.414",
     "pytest>=9.1.1",
     "ruff>=0.16.10",
 ]

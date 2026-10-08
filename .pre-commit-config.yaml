@@ -24,3 +24,13 @@ repos:
     hooks:
       - id: conventional-pre-commit
         stages: [commit-msg]
+
+  - repo: local
+    hooks:
+      - id: pyright
+        name: pyright
+        entry: uv run --project research pyright --project research
+        language: system
+        types: [python]
+        files: ^research/
+        pass_filenames: false

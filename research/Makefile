@@ -4,7 +4,7 @@
 
 PROJECT_NAME = research
 PYTHON_VERSION = 3.14
-PYTHON_INTERPRETER = python
+PYTHON_INTERPRETER = uv run python
 
 #################################################################################
 # COMMANDS                                                                      #
@@ -26,24 +26,25 @@ clean:
 	find . -type d -name "__pycache__" -delete
 
 
-## Lint using ruff (use `make format` to do formatting)
+## Lint using ruff and type-check using pyright (use `make format` to do formatting)
 .PHONY: lint
 lint:
-	ruff format --check
-	ruff check
+	uv run ruff format --check
+	uv run ruff check
+	uv run pyright
 
 ## Format source code with ruff
 .PHONY: format
 format:
-	ruff check --fix
-	ruff format
+	uv run ruff check --fix
+	uv run ruff format
 
 
 
 ## Run tests
 .PHONY: test
 test:
-	python -m pytest tests
+	$(PYTHON_INTERPRETER) -m pytest tests
 
 
 ## Set up Python interpreter environment
