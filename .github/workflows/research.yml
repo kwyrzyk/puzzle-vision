@@ -1,0 +1,45 @@
+name: research
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "research/**"
+      - ".github/workflows/research.yml"
+  pull_request:
+    paths:
+      - "research/**"
+      - ".github/workflows/research.yml"
+
+# cancel if newer commit pushed
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    working-directory: research
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+          cache-dependency-glob: research/uv.lock
+      - run: uv sync --locked
+      - run: make lint
+
+  test:
+    needs: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+          cache-dependency-glob: research/uv.lock
+      - run: uv sync --locked
+      - run: make test
