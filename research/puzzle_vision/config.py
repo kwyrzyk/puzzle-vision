@@ -16,6 +16,10 @@ INTERIM_DATA_DIR = DATA_DIR / "interim"
 PROCESSED_DATA_DIR = DATA_DIR / "processed"
 EXTERNAL_DATA_DIR = DATA_DIR / "external"
 
+RAW_IMAGES_DIR = RAW_DATA_DIR / "images"
+RAW_ANNOTATIONS_DIR = RAW_DATA_DIR / "annotations"
+RAW_METADATA_DIR = RAW_DATA_DIR / "metadata"
+
 MODELS_DIR = PROJ_ROOT / "models"
 
 REPORTS_DIR = PROJ_ROOT / "reports"
