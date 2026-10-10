@@ -4,5 +4,9 @@ Repository for engineering thesis of Krzysztof Wyrzykowski - student of Warsaw U
 Thesis subject: "Computer vision based mobile application checking the correct mixing of logic puzzles" (pol. "Aplikacja mobilna wykorzystująca widzenie komputerowe do sprawdzania poprawności wymieszania układanek logicznych").
 
 
-# Environemnt setup
-Before first commit run `pre-commit install` to enable hooks.
+# Environment setup
+Before first commit install hooks:
+```bash
+uv tool install pre-commit
+pre-commit install
+```

@@ -59,3 +59,14 @@ Before scrambling, the cube needs to be held with the white face up and the gree
 | `4_blue.jpg`   | blue   | B         |
 | `5_red.jpg`    | red    | R         |
 | `6_yellow.jpg` | yellow | D         |
+
+### Photo orientation
+Face at the top of the frame:
+
+| file                                     | top of frame |
+|------------------------------------------|--------------|
+| `1_white.jpg`                            | blue (B)     |
+| `2_green`, `3_orange`, `4_blue`, `5_red` | white (U)    |
+| `6_yellow.jpg`                           | red (R)      |
+
+All images: EXIF Orientation = 6 (pixels stored landscape, displayed portrait). Annotation coordinates are in display (portrait) space – apply EXIF when loading, e.g. `ImageOps.exif_transpose` (Pillow).
