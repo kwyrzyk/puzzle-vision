@@ -10,8 +10,9 @@ Data & research part of Engineering Thesis
 Requirements: [uv](https://docs.astral.sh/uv/), access to the Google Drive data folder, DVC client secret (ask the author).
 
 1. `uv sync`
-2. Set the client secret and run `dvc pull`, see [data/raw/README.md](data/raw/README.md#on-repo-clone).
-3. `make test` – all tests pass, none skipped.
+2. Set the client secret: `uv run dvc remote modify --local gdrive gdrive_client_secret '<SECRET>'`
+3. Pull data: `uv run dvc pull`. Details: [data/raw/README.md](data/raw/README.md#on-repo-clone).
+4. `make test` – all tests pass, none skipped.
 
 ## Make commands
 | command             | action                           |

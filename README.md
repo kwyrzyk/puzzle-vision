@@ -10,3 +10,5 @@ Before first commit install hooks:
 uv tool install pre-commit
 pre-commit install
 ```
+
+Research part setup: see [research/README.md](research/README.md).
