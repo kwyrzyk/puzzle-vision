@@ -1,0 +1,8 @@
+[core]
+    autostage = true
+    remote = gdrive
+[cache]
+    type = hardlink
+['remote "gdrive"']
+    url = gdrive://1u6Ra8S-138KGhmjjapOFGM36uSkJE3zG
+    gdrive_client_id = 599239917985-mdqm2nl28u9vmqi6h8ro41oc23174iqs.apps.googleusercontent.com

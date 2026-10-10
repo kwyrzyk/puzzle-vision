@@ -1,5 +1,7 @@
-# Data
-/data/
+# Data - raw data managed by dvc
+/data/interim/
+/data/processed/
+/data/external/
 
 # Mac OS-specific storage files
 .DS_Store

@@ -6,55 +6,46 @@
 
 Data & research part of Engineering Thesis
 
+## Getting started
+Requirements: [uv](https://docs.astral.sh/uv/), access to the Google Drive data folder, DVC client secret (ask the author).
+
+1. `uv sync`
+2. Set the client secret: `uv run dvc remote modify --local gdrive gdrive_client_secret '<SECRET>'`
+3. Pull data: `uv run dvc pull`. Details: [data/raw/README.md](data/raw/README.md#on-repo-clone).
+4. `make test` – all tests pass, none skipped.
+
+## Make commands
+| command             | action                           |
+|---------------------|----------------------------------|
+| `make requirements` | install dependencies             |
+| `make lint`         | ruff format check, ruff, pyright |
+| `make format`       | ruff autofix + format            |
+| `make test`         | pytest                           |
+
+Full list: `make help`.
+
+## Data
+- `data/raw` – images and annotations in DVC (Google Drive), metadata in git. Details: [data/raw/README.md](data/raw/README.md).
+
 ## Project Organization
 
 ```
-├── LICENSE            <- Open-source license if one is chosen
-├── Makefile           <- Makefile with convenience commands like `make data` or `make train`
-├── README.md          <- The top-level README for developers using this project.
+├── .dvc               <- DVC config, remote: Google Drive (secret in config.local)
+├── Makefile           <- `make help` lists commands
+├── pyproject.toml     <- package metadata, dependencies, ruff/pyright config
+├── uv.lock
 ├── data
-│   ├── external       <- Data from third party sources.
-│   ├── interim        <- Intermediate data that has been transformed.
-│   ├── processed      <- The final, canonical data sets for modeling.
-│   └── raw            <- The original, immutable data dump.
-│
-├── docs               <- A default mkdocs project; see www.mkdocs.org for details
-│
-├── models             <- Trained and serialized models, model predictions, or model summaries
-│
-├── notebooks          <- Jupyter notebooks. Naming convention is a number (for ordering),
-│                         the creator's initials, and a short `-` delimited description, e.g.
-│                         `1.0-jqp-initial-data-exploration`.
-│
-├── pyproject.toml     <- Project configuration file with package metadata for
-│                         puzzle_vision and configuration for tools like black
-│
-├── references         <- Data dictionaries, manuals, and all other explanatory materials.
-│
-├── reports            <- Generated analysis as HTML, PDF, LaTeX, etc.
-│   └── figures        <- Generated graphics and figures to be used in reporting
-│
-├── requirements.txt   <- The requirements file for reproducing the analysis environment, e.g.
-│                         generated with `pip freeze > requirements.txt`
-│
-├── setup.cfg          <- Configuration file for flake8
-│
-└── puzzle_vision   <- Source code for use in this project.
-    │
-    ├── __init__.py             <- Makes puzzle_vision a Python module
-    │
-    ├── config.py               <- Store useful variables and configuration
-    │
-    ├── dataset.py              <- Scripts to download or generate data
-    │
-    ├── features.py             <- Code to create features for modeling
-    │
-    ├── modeling
-    │   ├── __init__.py
-    │   ├── predict.py          <- Code to run model inference with trained models
-    │   └── train.py            <- Code to train models
-    │
-    └── plots.py                <- Code to create visualizations
+│   ├── raw            <- immutable input: images + annotations (DVC), metadata (git)
+│   ├── interim        <- intermediate data
+│   ├── processed      <- datasets for modeling
+│   └── external       <- third party data
+├── docs               <- documentation
+├── models             <- trained models
+├── notebooks          <- naming: `1.0-kw-short-description`
+├── references         <- data dictionaries, manuals, papers
+├── reports
+│   └── figures        <- generated figures for the thesis
+├── tests              <- pytest tests
+└── puzzle_vision      <- source code
+    └── config.py      <- project paths
 ```
-
---------
