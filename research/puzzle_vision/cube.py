@@ -17,9 +17,11 @@ Geometry uses cubie coordinates in {-1, 0, 1}^3: x points to R, y to U, z to F.
 """
 
 from enum import IntEnum
+import re
 from typing import NamedTuple, Self
 
 import numpy as np
+import numpy.typing as npt
 
 # Integer 3D vector (x -> R, y -> U, z -> F): cubie position or face normal
 type Vector = tuple[int, int, int]
@@ -78,13 +80,23 @@ class Facelet(NamedTuple):
     position: Vector  # cubie the facelet belongs to
 
 
-def cross(a: Vector, b: Vector) -> Vector:
+def _cross(a: Vector, b: Vector) -> Vector:
     return (a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0])
+
+
+def _dot(a: Vector, b: Vector) -> int:
+    return a[0] * b[0] + a[1] * b[1] + a[2] * b[2]
+
+
+def _rotate(v: Vector, axis: Vector) -> Vector:
+    """Rotate v by 90 degrees clockwise, looking at the face along -axis"""
+    k, c = _dot(axis, v), _cross(axis, v)
+    return (k * axis[0] - c[0], k * axis[1] - c[1], k * axis[2] - c[2])
 
 
 def _facelet(face: Face, index: int) -> Facelet:
     normal, up = NORMAL[face], NORMAL[TOP[face]]
-    right = cross(up, normal)
+    right = _cross(up, normal)
     row, col = divmod(index, CUBE_SIZE)
     dx, dy = col - 1, 1 - row
     position = (
@@ -101,12 +113,55 @@ FACELETS: tuple[Facelet, ...] = tuple(
 
 SOLVED: Facelets = "".join(face.name * FACELETS_PER_FACE for face in Face)
 
+_FACE_OF_NORMAL = {normal: face for face, normal in NORMAL.items()}
+_FACELET_ID = {(f.position, f.face): i for i, f in enumerate(FACELETS)}
+
+
+# A move is a permutation p of the 54 facelets: new_colors = colors[p]
+def _quarter_turn(face: Face) -> npt.NDArray[np.intp]:
+    """Clockwise quarter turn of face"""
+    axis = NORMAL[face]
+    perm = np.arange(len(FACELETS))
+    for i, f in enumerate(FACELETS):
+        if _dot(f.position, axis) == 1:
+            target = _rotate(f.position, axis), _FACE_OF_NORMAL[_rotate(NORMAL[f.face], axis)]
+            perm[_FACELET_ID[target]] = i
+    return perm
+
+
+def _move_table() -> npt.NDArray[np.intp]:
+    """table[face, turns - 1]: permutation of a move, turns = 1, 2, 3 (3 = ')"""
+    table = np.empty((len(Face), 3, len(FACELETS)), dtype=np.intp)
+    for face in Face:
+        quarter = _quarter_turn(face)
+        table[face, 0] = quarter
+        for turns in (2, 3):
+            table[face, turns - 1] = table[face, turns - 2][quarter]
+    return table
+
+
+MOVE_TABLE = _move_table()
+_MOVE = re.compile(r"([URFDLB])(2|')?")
+_TURNS = {None: 1, "2": 2, "'": 3}
+
+
+def parse_moves(moves: str) -> list[tuple[Face, int]]:
+    """WCA notation, e.g. "R U2 F'" -> [(R, 1), (U, 2), (F, 3)]"""
+    parsed = []
+    for token in moves.split():
+        token_match = _MOVE.fullmatch(token)
+        if token_match is None:
+            raise ValueError(f"invalid move: {token!r}")
+        parsed.append((Face[token_match[1]], _TURNS[token_match[2]]))
+    return parsed
+
 
 class CubeState:
     """Colors of the 54 facelets; any of them may not be assigned yet.
 
     Color is given as the face whose center has it (Face.U = white, ...).
     Colors can be set one by one.
+    Moves require all colors set.
     """
 
     __hash__ = None  # type: ignore[assignment]
@@ -127,6 +182,12 @@ class CubeState:
             state._colors[i] = Face[letter]
         return state
 
+    @classmethod
+    def from_scramble(cls, scramble: str) -> Self:
+        state = cls.from_facelets(SOLVED)
+        state.apply(scramble)
+        return state
+
     def __str__(self) -> Facelets:
         return "".join(UNSET if color < 0 else Face(color).name for color in self._colors)
 
@@ -142,6 +203,18 @@ class CubeState:
 
     def is_complete(self) -> bool:
         return bool(np.all(self._colors >= 0))
+
+    def apply(self, moves: str) -> None:
+        """Apply moves in WCA notation, e.g. a scramble"""
+        if not self.is_complete():
+            raise ValueError("all colors must be set before moves")
+        for face, turns in parse_moves(moves):
+            self._colors = self._colors[MOVE_TABLE[face, turns - 1]]
+
+    def differences(self, other: Self) -> list[Facelet]:
+        """Facelets with known colors in both states, but different"""
+        known = (self._colors >= 0) & (other._colors >= 0)
+        return [FACELETS[i] for i in np.flatnonzero(known & (self._colors != other._colors))]
 
 
 def _facelet_id(face: Face, index: int) -> int:
