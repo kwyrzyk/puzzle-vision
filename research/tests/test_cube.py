@@ -8,6 +8,8 @@ from puzzle_vision.cube import (
     FACELETS_PER_FACE,
     NORMAL,
     SOLVED,
+    UNSET,
+    CubeState,
     Face,
     Facelet,
 )
@@ -60,3 +62,39 @@ def test_kociemba_pieces_share_cubie(names: str) -> None:
 
 def test_solved() -> None:
     assert SOLVED == "U" * 9 + "R" * 9 + "F" * 9 + "D" * 9 + "L" * 9 + "B" * 9
+
+
+AFTER_R_MOVE = "UUFUUFUUFRRRRRRRRRFFDFFDFFDDDBDDBDDBLLLLLLLLLUBBUBBUBB"
+
+
+def test_empty_state() -> None:
+    state = CubeState()
+    assert str(state) == UNSET * len(FACELETS)
+    assert not state.is_complete()
+    assert state.color(Face.U, 0) is None
+
+
+def test_set_colors_one_by_one() -> None:
+    state = CubeState()
+    for f, letter in zip(FACELETS, AFTER_R_MOVE, strict=True):
+        assert not state.is_complete()
+        state.set_color(f.face, f.index, Face[letter])
+        assert state.color(f.face, f.index) is Face[letter]
+    assert state.is_complete()
+    assert state == CubeState.from_facelets(AFTER_R_MOVE)
+
+
+@pytest.mark.parametrize("facelets", [SOLVED, AFTER_R_MOVE, UNSET * 9 + AFTER_R_MOVE[9:]])
+def test_facelets_roundtrip(facelets: str) -> None:
+    assert str(CubeState.from_facelets(facelets)) == facelets
+
+
+@pytest.mark.parametrize("facelets", [SOLVED[:-1], SOLVED + "U", "X" + SOLVED[1:]])
+def test_invalid_facelets(facelets: str) -> None:
+    with pytest.raises(ValueError):
+        CubeState.from_facelets(facelets)
+
+
+def test_invalid_index() -> None:
+    with pytest.raises(ValueError):
+        CubeState().set_color(Face.U, FACELETS_PER_FACE, Face.U)

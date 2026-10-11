@@ -17,11 +17,13 @@ Geometry uses cubie coordinates in {-1, 0, 1}^3: x points to R, y to U, z to F.
 """
 
 from enum import IntEnum
-from typing import NamedTuple
+from typing import NamedTuple, Self
+
+import numpy as np
 
 # Integer 3D vector (x -> R, y -> U, z -> F): cubie position or face normal
 type Vector = tuple[int, int, int]
-type Facelets = str  # URFDLB
+type Facelets = str  # URFDLB letters, UNSET for a facelet with unknown color
 
 
 class Face(IntEnum):
@@ -65,13 +67,14 @@ COLOR: dict[Face, str] = {
 CENTER_IDX = 4
 CUBE_SIZE = 3
 FACELETS_PER_FACE = CUBE_SIZE**2
+UNSET = "-"
 
 
 class Facelet(NamedTuple):
     """One fixed position on face, not associated with color"""
 
     face: Face
-    index: int  # 0..8
+    index: int  # 0..8, row-major on the net
     position: Vector  # cubie the facelet belongs to
 
 
@@ -97,3 +100,51 @@ FACELETS: tuple[Facelet, ...] = tuple(
 )
 
 SOLVED: Facelets = "".join(face.name * FACELETS_PER_FACE for face in Face)
+
+
+class CubeState:
+    """Colors of the 54 facelets; any of them may not be assigned yet.
+
+    Color is given as the face whose center has it (Face.U = white, ...).
+    Colors can be set one by one.
+    """
+
+    __hash__ = None  # type: ignore[assignment]
+
+    def __init__(self) -> None:
+        self._colors = np.full(len(FACELETS), -1, dtype=np.int8)  # -1 = unknown color
+
+    @classmethod
+    def from_facelets(cls, facelets: Facelets) -> Self:
+        if len(facelets) != len(FACELETS):
+            raise ValueError(f"expected {len(FACELETS)} facelets, got {len(facelets)}")
+        state = cls()
+        for i, letter in enumerate(facelets):
+            if letter == UNSET:
+                continue
+            if letter not in Face.__members__:
+                raise ValueError(f"invalid facelet {letter!r} at {i}")
+            state._colors[i] = Face[letter]
+        return state
+
+    def __str__(self) -> Facelets:
+        return "".join(UNSET if color < 0 else Face(color).name for color in self._colors)
+
+    def __eq__(self, other: object) -> bool:
+        return isinstance(other, CubeState) and np.array_equal(self._colors, other._colors)
+
+    def set_color(self, face: Face, index: int, color: Face) -> None:
+        self._colors[_facelet_id(face, index)] = color
+
+    def color(self, face: Face, index: int) -> Face | None:
+        color = self._colors[_facelet_id(face, index)]
+        return None if color < 0 else Face(color)
+
+    def is_complete(self) -> bool:
+        return bool(np.all(self._colors >= 0))
+
+
+def _facelet_id(face: Face, index: int) -> int:
+    if not 0 <= index < FACELETS_PER_FACE:
+        raise ValueError(f"facelet index out of range: {index}")
+    return face * FACELETS_PER_FACE + index
