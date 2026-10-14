@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- cube_0001 scrambled with "R" move: photo of U (B at the top), stickers in random order -->
+<annotations>
+    <version>1.1</version>
+    <meta>
+        <project>
+            <tasks>
+                <task>
+                    <id>2</id>
+                    <name>cube_0001</name>
+                </task>
+            </tasks>
+        </project>
+    </meta>
+    <image id="0" name="1_white.jpg" subset="default" task_id="2" width="300" height="300">
+        <polygon label="face" points="0,0;300,0;300,300;0,300" />
+        <polygon label="green" points="200,100;300,100;300,200;200,200" />
+        <polygon label="white" points="0,200;100,200;100,300;0,300" />
+        <polygon label="white" points="100,0;200,0;200,100;100,100" />
+        <polygon label="green" points="200,200;300,200;300,300;200,300" />
+        <polygon label="white" points="0,0;100,0;100,100;0,100" />
+        <polygon label="white" points="100,100;200,100;200,200;100,200" />
+        <polygon label="green" points="200,0;300,0;300,100;200,100" />
+        <polygon label="white" points="100,200;200,200;200,300;100,300" />
+        <polygon label="white" points="0,100;100,100;100,200;0,200" />
+    </image>
+    <image id="1" name="2_green_1.jpg" subset="default" task_id="2" width="300" height="300">
+    </image>
+</annotations>

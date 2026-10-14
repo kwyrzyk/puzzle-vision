@@ -99,27 +99,36 @@ def _rotate(v: Vector, axis: Vector) -> Vector:
     return (k * axis[0] - c[0], k * axis[1] - c[1], k * axis[2] - c[2])
 
 
-def _facelet(face: Face, index: int) -> Facelet:
-    normal, up = NORMAL[face], NORMAL[TOP[face]]
-    right = _cross(up, normal)
-    row, col = divmod(index, CUBE_SIZE)
+def _position(face: Face, up: Face, cell: int) -> Vector:
+    """Cubie of a cell (0..8, row-major) of face, seen with face up at the top"""
+    normal, top = NORMAL[face], NORMAL[up]
+    right = _cross(top, normal)
+    row, col = divmod(cell, CUBE_SIZE)
     dx, dy = col - 1, 1 - row
-    position = (
-        normal[0] + dx * right[0] + dy * up[0],
-        normal[1] + dx * right[1] + dy * up[1],
-        normal[2] + dx * right[2] + dy * up[2],
+    return (
+        normal[0] + dx * right[0] + dy * top[0],
+        normal[1] + dx * right[1] + dy * top[1],
+        normal[2] + dx * right[2] + dy * top[2],
     )
-    return Facelet(face, index, position)
 
 
 FACELETS: tuple[Facelet, ...] = tuple(
-    _facelet(face, i) for face in Face for i in range(FACELETS_PER_FACE)
+    Facelet(face, i, _position(face, TOP[face], i))
+    for face in Face
+    for i in range(FACELETS_PER_FACE)
 )
-
 SOLVED: Facelets = "".join(face.name * FACELETS_PER_FACE for face in Face)
 
 _FACE_OF_NORMAL = {normal: face for face, normal in NORMAL.items()}
 _FACELET_ID = {(f.position, f.face): i for i, f in enumerate(FACELETS)}
+
+
+def face_view(face: Face, up: Face) -> list[int]:
+    """Facelet indices (0..8) of face in reading order, seen with face up at the top"""
+    return [
+        _FACELET_ID[_position(face, up, cell), face] % FACELETS_PER_FACE
+        for cell in range(FACELETS_PER_FACE)
+    ]
 
 
 # A move is a permutation p of the 54 facelets: new_colors = colors[p]
