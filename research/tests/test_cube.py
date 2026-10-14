@@ -1,31 +1,35 @@
 from collections import Counter
 import itertools
+import random
 
 import pytest
 
 from puzzle_vision.cube import (
     CENTER_IDX,
+    CORNERS,
+    EDGES,
     FACELETS,
     FACELETS_PER_FACE,
     NORMAL,
     SOLVED,
     UNSET,
     CubeState,
+    Defect,
     Face,
     Facelet,
     parse_moves,
 )
 
 # Kociemba's corner and edge facelets, e.g. URF = U9, R1, F3
-CORNERS = [
-    "U7 F1 L3", "U9 R1 F3", "U3 B1 R3", "U1 L1 B3", # top layer
-    "D7 B9 L7", "D9 R9 B7", "D3 F9 R7", "D1 L9 F7"  # bottom layer
-]  # fmt: skip
-EDGES = [
-    "U8 F2", "U6 R2", "U2 B2", "U4 L2", # top layer
-    "F6 R4", "R6 B4", "B6 L4", "L6 F4", # middle layer
-    "D8 B8", "D6 R8", "D2 F8", "D4 L8"  # bottom layer
-]  # fmt: skip
+CORNER_FACELETS = {
+    "URF": "U9 R1 F3", "UFL": "U7 F1 L3", "ULB": "U1 L1 B3", "UBR": "U3 B1 R3",
+    "DFR": "D3 F9 R7", "DLF": "D1 L9 F7", "DBL": "D7 B9 L7", "DRB": "D9 R9 B7",
+}  # fmt: skip
+EDGE_FACELETS = {
+    "UR": "U6 R2", "UF": "U8 F2", "UL": "U4 L2", "UB": "U2 B2",
+    "DR": "D6 R8", "DF": "D2 F8", "DL": "D4 L8", "DB": "D8 B8",
+    "FR": "F6 R4", "FL": "F4 L6", "BL": "B6 L4", "BR": "B4 R6",
+}  # fmt: skip
 
 
 def facelet(name: str) -> Facelet:
@@ -56,10 +60,15 @@ def test_cubie_types_counts() -> None:
     assert stickers_per_cubie == {1: 6, 2: 12, 3: 8}
 
 
-@pytest.mark.parametrize("names", CORNERS + EDGES)
+@pytest.mark.parametrize("names", [*CORNER_FACELETS.values(), *EDGE_FACELETS.values()])
 def test_kociemba_pieces_share_cubie(names: str) -> None:
     positions = {facelet(name).position for name in names.split()}
     assert len(positions) == 1
+
+
+def test_piece_names() -> None:
+    assert list(CORNERS) == list(CORNER_FACELETS)
+    assert list(EDGES) == list(EDGE_FACELETS)
 
 
 def test_solved() -> None:
@@ -180,3 +189,79 @@ def test_differences(facelets: str, other: str, expected: str) -> None:
     state = CubeState.from_facelets(facelets)
     differences = state.differences(CubeState.from_facelets(other))
     assert [f"{f.face.name}{f.index + 1}" for f in differences] == expected.split()
+
+
+def edit_facelets(facelets: str, names: str, colors: str) -> str:
+    """Set colors of the named facelets, e.g. edit(SOLVED, "U6 R2", "RU")"""
+    chars = list(facelets)
+    for name, color in zip(names.split(), colors, strict=True):
+        f = facelet(name)
+        chars[f.face * FACELETS_PER_FACE + f.index] = color
+    return "".join(chars)
+
+
+def blank_facelets(facelets: str, names: str) -> str:
+    return edit_facelets(facelets, names, UNSET * len(names.split()))
+
+
+SCRAMBLED = str(CubeState.from_scramble(SCRAMBLE))
+ALL_CORNERS = " ".join(CORNER_FACELETS.values())
+ALL_EDGES = " ".join(EDGE_FACELETS.values())
+
+
+@pytest.mark.parametrize(
+    ("facelets", "expected"),
+    [
+        (UNSET * len(FACELETS), []),
+        (SOLVED, []),
+        (SCRAMBLED, []),
+        (blank_facelets(SCRAMBLED, ALL_EDGES), []),
+        (edit_facelets(UNSET * len(FACELETS), "U5", "D"), [Defect.CENTERS]),
+        # impossible colors: U and D on one piece
+        (edit_facelets(SOLVED, "U9", "D"), [Defect.CORNERS]),
+        (edit_facelets(SOLVED, "U6", "D"), [Defect.EDGES]),
+        # mirrored corner: colors of URF counterclockwise
+        (edit_facelets(SOLVED, "U9 R1 F3", "UFR"), [Defect.CORNERS]),
+        # each place fits, but both need the same piece URF
+        (edit_facelets(UNSET * len(FACELETS), "U9 R1 U7 F1", "URUR"), [Defect.CORNERS]),
+        (
+            edit_facelets(
+                UNSET * len(FACELETS), "U8 U4 U2 D8 F8 D6 R8 F6 R4 B4 R6", "UUUURDRFRBR"
+            ),
+            [Defect.EDGES],
+        ),
+        (edit_facelets(SOLVED, "U9 R1 F3", "FUR"), [Defect.CORNER_TWIST]),
+        (edit_facelets(SOLVED, "U6 R2", "RU"), [Defect.EDGE_FLIP]),
+        # swapped edges UR and UF
+        (edit_facelets(SOLVED, "U6 R2 U8 F2", "UFUR"), [Defect.PARITY]),
+        # swapped corners URF and UFL, and edges UR and UF: solvable
+        (edit_facelets(SOLVED, "U9 R1 F3 U7 F1 L3 U6 R2 U8 F2", "UFLURFUFUR"), []),
+    ],
+)
+def test_defects(facelets: str, expected: list[Defect]) -> None:
+    assert CubeState.from_facelets(facelets).defects() == expected
+
+
+def test_twist_needs_two_colors_of_each_corner() -> None:
+    twisted = edit_facelets(SOLVED, "U9 R1 F3", "FUR")
+    second, third = (
+        " ".join(names.split()[k] for names in CORNER_FACELETS.values()) for k in (1, 2)
+    )
+    two_colors = blank_facelets(twisted, third)
+    assert CubeState.from_facelets(two_colors).defects() == [Defect.CORNER_TWIST]
+    one_color = blank_facelets(two_colors, second)
+    assert CubeState.from_facelets(one_color).defects() == []
+
+
+def test_parity_needs_both_groups() -> None:
+    swapped_edges = edit_facelets(SOLVED, "U6 R2 U8 F2", "UFUR")
+    assert CubeState.from_facelets(blank_facelets(swapped_edges, ALL_CORNERS)).defects() == []
+    # one color of edge DF: DF or FD can't be told
+    assert CubeState.from_facelets(blank_facelets(swapped_edges, "D2")).defects() == []
+
+
+@pytest.mark.parametrize("seed", range(20))
+def test_no_defects_on_partial_state(seed: int) -> None:
+    rng = random.Random(seed)
+    facelets = "".join(c if rng.random() < 0.6 else UNSET for c in SCRAMBLED)
+    assert CubeState.from_facelets(facelets).defects() == []
