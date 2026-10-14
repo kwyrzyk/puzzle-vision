@@ -21,7 +21,9 @@ def test_parse_cvat() -> None:
     photo, empty = parse_cvat(FIXTURE)
     assert (photo.cube_id, photo.face, len(photo.stickers)) == ("cube_0001", Face.U, 9)
     assert photo.stickers[0] == Sticker(Face.F, [(200, 100), (300, 100), (300, 200), (200, 200)])
+    assert photo.outlines == [[(0, 0), (300, 0), (300, 300), (0, 300)]]
     assert (empty.cube_id, empty.face, empty.stickers) == ("cube_0001", Face.F, [])
+    assert empty.outlines == []
 
 
 def test_sticker_center() -> None:

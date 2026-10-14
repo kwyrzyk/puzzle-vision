@@ -42,6 +42,7 @@ class ImageAnnotation(NamedTuple):
     cube_id: str  # e.g. cube_0001
     face: Face  # photographed face
     stickers: list[Sticker]
+    outlines: list[list[Point]]  # polygons labeled 'face', one expected
 
 
 def _points(text: str) -> list[Point]:
@@ -58,13 +59,18 @@ def parse_cvat(path: Path) -> list[ImageAnnotation]:
     cube_ids = {task.findtext("id"): task.findtext("name") or "" for task in root.iter("task")}
     images = []
     for image in root.iter("image"):
-        stickers = [
-            Sticker(_FACE_OF_COLOR[polygon.attrib["label"]], _points(polygon.attrib["points"]))
-            for polygon in image.iter("polygon")
-            if polygon.attrib["label"] != OUTLINE_LABEL
+        polygons = [
+            (p.attrib["label"], _points(p.attrib["points"])) for p in image.iter("polygon")
         ]
+        stickers = [
+            Sticker(_FACE_OF_COLOR[label], points)
+            for label, points in polygons
+            if label != OUTLINE_LABEL
+        ]
+        outlines = [points for label, points in polygons if label == OUTLINE_LABEL]
         cube_id = cube_ids[image.attrib["task_id"]]
-        images.append(ImageAnnotation(cube_id, _face_of_file(image.attrib["name"]), stickers))
+        face = _face_of_file(image.attrib["name"])
+        images.append(ImageAnnotation(cube_id, face, stickers, outlines))
     return images
 
 
