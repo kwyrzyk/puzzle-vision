@@ -15,11 +15,6 @@ with (RAW_METADATA_DIR / "cubes.csv").open(newline="") as f:
 
 # Errors found in the data, to be fixed in CVAT; strict xfail fails once fixed
 KNOWN_ERRORS = {
-    "cube_0002": "B5 center has a wrong color",
-    "cube_0003": "8 stickers on U",
-    "cube_0004": "L2 has a wrong color, 8 stickers on R",
-    "cube_0018": "19 facelets differ from the scramble",
-    "cube_0020": "10 stickers and no outline on L",
     **{f"cube_{n:04}": "not annotated" for n in range(21, 26)},
 }
 
