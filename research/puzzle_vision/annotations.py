@@ -40,6 +40,8 @@ class Sticker(NamedTuple):
 
 class ImageAnnotation(NamedTuple):
     cube_id: str  # e.g. cube_0001
+    file_name: str  # e.g. 1_white.jpg
+    size: tuple[int, int]  # width, height of the displayed image (EXIF applied)
     face: Face  # photographed face
     stickers: list[Sticker]
     outlines: list[list[Point]]  # polygons labeled 'face', one expected
@@ -47,6 +49,12 @@ class ImageAnnotation(NamedTuple):
 
 def _points(text: str) -> list[Point]:
     return [(float(x), float(y)) for x, y in (p.split(",") for p in text.split(";"))]
+
+
+def _file_name(cvat_name: str) -> str:
+    """CVAT project export adds a suffix: '1_white_7.jpg' -> '1_white.jpg'"""
+    path = Path(cvat_name)
+    return "_".join(path.stem.split("_")[:2]) + path.suffix
 
 
 def _face_of_file(name: str) -> Face:
@@ -69,8 +77,10 @@ def parse_cvat(path: Path) -> list[ImageAnnotation]:
         ]
         outlines = [points for label, points in polygons if label == OUTLINE_LABEL]
         cube_id = cube_ids[image.attrib["task_id"]]
-        face = _face_of_file(image.attrib["name"])
-        images.append(ImageAnnotation(cube_id, face, stickers, outlines))
+        file_name = _file_name(image.attrib["name"])
+        size = int(image.attrib["width"]), int(image.attrib["height"])
+        face = _face_of_file(file_name)
+        images.append(ImageAnnotation(cube_id, file_name, size, face, stickers, outlines))
     return images
 
 

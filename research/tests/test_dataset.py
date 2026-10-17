@@ -2,13 +2,16 @@
 
 import csv
 
+from PIL import Image
 import pytest
 
 from puzzle_vision.annotations import ImageAnnotation, parse_cvat, set_face_colors
-from puzzle_vision.config import RAW_ANNOTATIONS_DIR, RAW_METADATA_DIR
+from puzzle_vision.config import RAW_ANNOTATIONS_DIR, RAW_IMAGES_DIR, RAW_METADATA_DIR
 from puzzle_vision.cube import FACELETS_PER_FACE, CubeState, Face
 
 ANNOTATIONS = RAW_ANNOTATIONS_DIR / "cvat_annotations.xml"
+EXIF_ORIENTATION = 0x0112
+TRANSPOSED = {5, 6, 7, 8}  # EXIF orientations that swap width and height
 
 with (RAW_METADATA_DIR / "cubes.csv").open(newline="") as f:
     SCRAMBLES = {row["cube_id"]: row["scramble"] for row in csv.DictReader(f)}
@@ -56,3 +59,12 @@ def test_annotations_match_scramble(
     names = [f"{f.face.name}{f.index + 1}" for f in differences]
     assert not names, (names, state.defects())
     assert not problems
+
+
+def test_images_match_annotated_size(images: dict[str, list[ImageAnnotation]]) -> None:
+    for image in (image for cube in images.values() for image in cube):
+        with Image.open(RAW_IMAGES_DIR / image.cube_id / image.file_name) as photo:
+            width, height = photo.size
+            if photo.getexif().get(EXIF_ORIENTATION) in TRANSPOSED:
+                width, height = height, width
+        assert (width, height) == image.size, (image.cube_id, image.file_name)
