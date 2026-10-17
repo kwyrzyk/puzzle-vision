@@ -2323,6 +2323,7 @@ dev = [
     { name = "dvc", extra = ["gdrive"] },
     { name = "pyright" },
     { name = "pytest" },
+    { name = "rubiktwophase" },
     { name = "ruff" },
 ]
 
@@ -2346,6 +2347,7 @@ dev = [
     { name = "dvc", extras = ["gdrive"], specifier = ">=3.67.1" },
     { name = "pyright", specifier = ">=1.1.414" },
     { name = "pytest", specifier = ">=9.1.1" },
+    { name = "rubiktwophase", specifier = ">=1.1.1" },
     { name = "ruff", specifier = ">=0.16.10" },
 ]
 
@@ -2829,6 +2831,15 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/c7/3b/ebda527b56beb90cb7652cb1c7e4f91f48649fbcd8d2eb2fb6e77cd3329b/ruamel_yaml-0.19.1.tar.gz", hash = "sha256:53eb66cd27849eff968ebf8f0bf61f46cdac2da1d1f3576dd4ccee9b25c31993", size = 142709, upload-time = "2026-01-02T16:50:31.84Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/b8/0c/51f6841f1d84f404f92463fc2b1ba0da357ca1e3db6b7fbda26956c3b82a/ruamel_yaml-0.19.1-py3-none-any.whl", hash = "sha256:27592957fedf6e0b62f281e96effd28043345e0e66001f97683aa9a40c667c93", size = 118102, upload-time = "2026-01-02T16:50:29.201Z" },
+]
+
+[[package]]
+name = "rubiktwophase"
+version = "1.1.1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/55/ec/d1ab747f1e1cc39c7148528f1c6c79dae50d9ba2bc1e9ca45c1e05b47287/RubikTwoPhase-1.1.1.tar.gz", hash = "sha256:3956ab2a684db595371c87c79538fa49d8a540931ea0f1c7518fc562ea53c5bd", size = 46955, upload-time = "2022-11-16T00:57:30.34Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/ff/70/d38812a69a5c1142b7d765afb62177e1f71f5a2b122fed681ccd90c3acac/RubikTwoPhase-1.1.1-py3-none-any.whl", hash = "sha256:371230714c6996424b55b27b6193a51f40e1f8b4fc32640de1ede3fa6966e79f", size = 53947, upload-time = "2022-11-16T00:57:28.307Z" },
 ]
 
 [[package]]

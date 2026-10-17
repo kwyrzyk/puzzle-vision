@@ -5,6 +5,7 @@ import re
 import pytest
 
 from puzzle_vision.config import RAW_IMAGES_DIR, RAW_METADATA_DIR
+from puzzle_vision.cube import parse_moves
 
 FACE_FILES = [
     "1_white.jpg",
@@ -15,7 +16,6 @@ FACE_FILES = [
     "6_yellow.jpg",
 ]
 CUBE_ID = re.compile(r"cube_\d{4}")
-MOVE = re.compile(r"[UDLRFB]['2]?")
 
 
 def read_csv(name: str) -> list[dict[str, str]]:
@@ -54,10 +54,8 @@ def test_foreign_keys_exist(cubes: list[dict[str, str]], name: str, key: str) ->
 
 def test_scrambles_are_in_valid_wca_notation(cubes: list[dict[str, str]]) -> None:
     for row in cubes:
-        moves = row["scramble"].split()
+        moves = parse_moves(row["scramble"])  # ValueError on an invalid move
         assert moves, row["cube_id"]
-        bad = [m for m in moves if not MOVE.fullmatch(m)]
-        assert not bad, f"{row['cube_id']}: invalid moves {bad}"
 
         # no same face move twice in a row
         repeated = [a for a, b in itertools.pairwise(moves) if a[0] == b[0]]
