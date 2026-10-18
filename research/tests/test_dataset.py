@@ -7,12 +7,11 @@ from PIL import Image
 import pytest
 
 from puzzle_vision.annotations import ImageAnnotation, Sticker, parse_cvat, set_face_colors
-from puzzle_vision.config import RAW_ANNOTATIONS_DIR, RAW_IMAGES_DIR, RAW_METADATA_DIR
+from puzzle_vision.config import CVAT_ANNOTATIONS, RAW_IMAGES_DIR, RAW_METADATA_DIR
 from puzzle_vision.cube import COLOR, FACELETS_PER_FACE, CubeState, Face
 from puzzle_vision.export import CLASSES, shapes
 from puzzle_vision.export.yolo import read_labels, write_labels
 
-ANNOTATIONS = RAW_ANNOTATIONS_DIR / "cvat_annotations.xml"
 EXIF_ORIENTATION = 0x0112
 TRANSPOSED = {5, 6, 7, 8}  # EXIF orientations that swap width and height
 FACE_OF_CLASS = {CLASSES.index(color): face for face, color in COLOR.items()}
@@ -26,14 +25,14 @@ KNOWN_ERRORS = {
 }
 
 pytestmark = pytest.mark.skipif(
-    not ANNOTATIONS.exists(), reason="annotations not pulled (run `dvc pull`)"
+    not CVAT_ANNOTATIONS.exists(), reason="annotations not pulled (run `dvc pull`)"
 )
 
 
 @pytest.fixture(scope="module")
 def images() -> dict[str, list[ImageAnnotation]]:
     by_cube: dict[str, list[ImageAnnotation]] = {cube_id: [] for cube_id in SCRAMBLES}
-    for image in parse_cvat(ANNOTATIONS):
+    for image in parse_cvat(CVAT_ANNOTATIONS):
         by_cube[image.cube_id].append(image)
     return by_cube
 

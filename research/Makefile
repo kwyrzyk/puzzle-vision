@@ -66,7 +66,7 @@ create_environment:
 ## Make dataset
 .PHONY: data
 data: requirements
-	$(PYTHON_INTERPRETER) puzzle_vision/dataset.py
+	uv run dvc repro
 
 
 #################################################################################
