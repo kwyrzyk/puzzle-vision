@@ -1,0 +1,17 @@
+stages:
+  yolo_seg:
+    cmd: >-
+      python -m puzzle_vision.dataset --format yolo-seg
+      --train ${split.train} --val ${split.val} --seed ${split.seed}
+    deps:
+      - data/raw/images
+      - data/raw/annotations
+      - puzzle_vision/annotations.py
+      - puzzle_vision/dataset.py
+      - puzzle_vision/export
+      - puzzle_vision/split.py
+    params:
+      - split
+    outs:
+      - data/processed/yolo_seg:
+          push: false  # rebuilt with `make data`

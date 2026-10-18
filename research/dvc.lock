@@ -1,0 +1,45 @@
+schema: '2.0'
+stages:
+  yolo_seg:
+    cmd: python -m puzzle_vision.dataset --format yolo-seg --train 0.6 --val 0.2
+      --seed 42
+    deps:
+    - path: data/raw/annotations
+      hash: md5
+      md5: 69ec9284aa59f2089f0b04c3f6ee3fca.dir
+      size: 279319
+      nfiles: 1
+    - path: data/raw/images
+      hash: md5
+      md5: 1c1b4dd74015575cb6a18647986a80e0.dir
+      size: 463002907
+      nfiles: 150
+    - path: puzzle_vision/annotations.py
+      hash: md5
+      md5: 9f84074698e25d6d18f654e867b13031
+      size: 3836
+    - path: puzzle_vision/dataset.py
+      hash: md5
+      md5: 8a6eaabbd5c3db0f953e3fedbe3f9a79
+      size: 2019
+    - path: puzzle_vision/export
+      hash: md5
+      md5: a9b85d3fbf7453beaa9a70968887d03f.dir
+      size: 5022
+      nfiles: 3
+    - path: puzzle_vision/split.py
+      hash: md5
+      md5: 4ab262d1dd9b79ac421460aafa2d2840
+      size: 1305
+    params:
+      params.yaml:
+        split:
+          train: 0.6
+          val: 0.2
+          seed: 42
+    outs:
+    - path: data/processed/yolo_seg
+      hash: md5
+      md5: 7af154dc91422c2fc5cde8e78d9c3684.dir
+      size: 367744268
+      nfiles: 241

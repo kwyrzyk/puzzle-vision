@@ -21,11 +21,17 @@ Requirements: [uv](https://docs.astral.sh/uv/), access to the Google Drive data 
 | `make lint`         | ruff format check, ruff, pyright |
 | `make format`       | ruff autofix + format            |
 | `make test`         | pytest                           |
+| `make data`         | build datasets (`dvc repro`)     |
 
 Full list: `make help`.
 
 ## Data
 - `data/raw` – images and annotations in DVC (Google Drive), metadata in git. Details: [data/raw/README.md](data/raw/README.md).
+- `data/processed` – training datasets built from `data/raw` by `make data` (`dvc repro`), not pushed to the remote:
+    - `yolo_seg/` – [Ultralytics YOLO segmentation](https://docs.ultralytics.com/datasets/segment/), `data.yaml` for training,
+    - split by cube, train and val fractions and seed in `params.yaml`, the rest is test,
+    - only cubes with all photos annotated
+- To add a new export format: subclass `DatasetWriter` in a new module of `puzzle_vision/export/`, decorate it with `@register("name")`, import the module in `export/__init__.py` and add a stage to `dvc.yaml`.
 
 ## Project Organization
 
