@@ -8,13 +8,13 @@ import pytest
 
 from puzzle_vision.annotations import ImageAnnotation, Sticker, parse_cvat, set_face_colors
 from puzzle_vision.config import CVAT_ANNOTATIONS, RAW_IMAGES_DIR, RAW_METADATA_DIR
-from puzzle_vision.cube import COLOR, FACELETS_PER_FACE, CubeState, Face
-from puzzle_vision.export import CLASSES, shapes
+from puzzle_vision.cube import FACELETS_PER_FACE, CubeState, Face
+from puzzle_vision.export import shapes
 from puzzle_vision.export.yolo import read_labels, write_labels
+from puzzle_vision.predictions import FACE_OF_CLASS
 
 EXIF_ORIENTATION = 0x0112
 TRANSPOSED = {5, 6, 7, 8}  # EXIF orientations that swap width and height
-FACE_OF_CLASS = {CLASSES.index(color): face for face, color in COLOR.items()}
 
 with (RAW_METADATA_DIR / "cubes.csv").open(newline="") as f:
     SCRAMBLES = {row["cube_id"]: row["scramble"] for row in csv.DictReader(f)}
