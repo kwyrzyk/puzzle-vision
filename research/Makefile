@@ -45,7 +45,10 @@ format:
 .PHONY: test
 test:
 	$(PYTHON_INTERPRETER) -m pytest tests
-	@uv run dvc status --quiet || (uv run dvc status; echo ">>> datasets out of date: run make data, commit dvc.lock"; exit 1)
+	@# skipped without pulled data, e.g. in CI
+	@if [ -d data/raw/images ]; then \
+		uv run dvc status --quiet || (uv run dvc status; echo ">>> datasets out of date: run make data, commit dvc.lock"; exit 1); \
+	fi
 
 
 ## Set up Python interpreter environment
