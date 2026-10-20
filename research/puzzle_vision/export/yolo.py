@@ -24,7 +24,7 @@ class YoloSegWriter(DatasetWriter):
             self._splits.append(split)
             for kind in ("images", "labels"):
                 (self.out_dir / kind / split).mkdir(parents=True)
-        name = f"{image.cube_id}_{Path(image.file_name).stem}"
+        name = file_stem(image)
         shutil.copyfile(source, self.out_dir / "images" / split / f"{name}{source.suffix}")
         write_labels(self.out_dir / "labels" / split / f"{name}.txt", shapes(image), image.size)
 
@@ -53,3 +53,8 @@ def read_labels(path: Path, size: tuple[int, int]) -> list[Shape]:
         polygon = [(float(x) * width, float(y) * height) for x, y in zip(xs, ys, strict=True)]
         image_shapes.append((int(class_id), polygon))
     return image_shapes
+
+
+def file_stem(image: ImageAnnotation) -> str:
+    """Name of the photo and its labels in the dataset, e.g. cube_0001_1_white"""
+    return f"{image.cube_id}_{Path(image.file_name).stem}"
