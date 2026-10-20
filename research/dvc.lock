@@ -24,8 +24,8 @@ stages:
       size: 2019
     - path: puzzle_vision/export
       hash: md5
-      md5: a9b85d3fbf7453beaa9a70968887d03f.dir
-      size: 5022
+      md5: edf070337a78e3d18b761e445301121d.dir
+      size: 5180
       nfiles: 3
     - path: puzzle_vision/split.py
       hash: md5
