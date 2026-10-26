@@ -31,6 +31,9 @@ uv run dvc add data/raw/images
 uv run dvc push
 git commit
 ```
+A flat directory of photos taken in face order (6 per cube) can be split into `cube_NNNN/`
+directories with `scripts/sort_cubes.py` (numbering continues after the last cube, `--dry-run`
+to preview).
 
 ## Metadata
 | file                   | key         | description                                              |
@@ -69,4 +72,4 @@ Face at the top of the frame:
 | `2_green`, `3_orange`, `4_blue`, `5_red` | white (U)    |
 | `6_yellow.jpg`                           | red (R)      |
 
-All images: EXIF Orientation = 6 (pixels stored landscape, displayed portrait). Annotation coordinates are in display (portrait) space – apply EXIF when loading, e.g. `ImageOps.exif_transpose` (Pillow).
+Annotation coordinates are in display space – mind the EXIF Orientation when loading, e.g. ImageOps.exif_transpose (Pillow).

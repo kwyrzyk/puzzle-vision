@@ -11,9 +11,9 @@ stages:
       nfiles: 1
     - path: data/raw/images
       hash: md5
-      md5: 1c1b4dd74015575cb6a18647986a80e0.dir
-      size: 463002907
-      nfiles: 150
+      md5: 4d2c53b6864a489550634832a86fa9ff.dir
+      size: 534556164
+      nfiles: 192
     - path: puzzle_vision/annotations.py
       hash: md5
       md5: 9f84074698e25d6d18f654e867b13031

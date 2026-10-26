@@ -20,7 +20,9 @@ with (RAW_METADATA_DIR / "cubes.csv").open(newline="") as f:
     SCRAMBLES = {row["cube_id"]: row["scramble"] for row in csv.DictReader(f)}
 
 # Errors found in the data, to be fixed in CVAT; strict xfail fails once fixed
-KNOWN_ERRORS = {}
+KNOWN_ERRORS = {
+    **{f"cube_{n:04}": "not annotated" for n in range(26, 33)},
+}
 
 pytestmark = pytest.mark.skipif(
     not CVAT_ANNOTATIONS.exists(), reason="annotations not pulled (run `dvc pull`)"

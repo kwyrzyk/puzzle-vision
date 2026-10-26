@@ -55,7 +55,7 @@ force-sort-within-sections = true
 "notebooks/*" = ["E402"] # allow imports in all notebook cells
 
 [tool.pyright]
-include = ["puzzle_vision", "tests"]
+include = ["puzzle_vision", "scripts", "tests"]
 venvPath = "."
 venv = ".venv"
 typeCheckingMode = "basic"
