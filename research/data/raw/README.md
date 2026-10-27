@@ -33,7 +33,8 @@ git commit
 ```
 A flat directory of photos taken in face order (6 per cube) can be split into `cube_NNNN/`
 directories with `scripts/sort_cubes.py` (numbering continues after the last cube, `--dry-run`
-to preview).
+to preview). `scripts/create_tasks.py` then creates one CVAT task per new cube (skips existing
+tasks, password asked interactively).
 
 ## Metadata
 | file                   | key         | description                                              |

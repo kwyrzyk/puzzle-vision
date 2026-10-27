@@ -64,6 +64,9 @@ typeCheckingMode = "basic"
 constraint-dependencies = ["pyopenssl>=24"]
 
 [dependency-groups]
+cvat = [
+    "cvat-sdk~=2.66.0",
+]
 dev = [
     "dvc[gdrive]>=3.67.1",
     "pyright>=1.1.414",

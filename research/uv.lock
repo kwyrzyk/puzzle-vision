@@ -630,6 +630,25 @@ wheels = [
 ]
 
 [[package]]
+name = "cvat-sdk"
+version = "2.66.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "attrs" },
+    { name = "packaging" },
+    { name = "pillow" },
+    { name = "platformdirs" },
+    { name = "python-dateutil" },
+    { name = "tqdm" },
+    { name = "typing-extensions" },
+    { name = "urllib3" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/6e/88/19faf88121c5686b7c35b82ae19597a962258915f12a116c893f48267803/cvat_sdk-2.66.0.tar.gz", hash = "sha256:9ed2c258638dc5dbc6fc58165b06c114388f098df9130bab853917779df40708", size = 244080, upload-time = "2026-05-26T20:41:29.573Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/bd/e8/3dd4e110c0c17798c6115663d25b3a0d56fcb37bcc9dc9130f5bfef64092/cvat_sdk-2.66.0-py3-none-any.whl", hash = "sha256:b29d660aadaa76a54c061794a8ff8a57cbc1a7cb8baf9cb1a4285c5960009254", size = 794787, upload-time = "2026-05-26T20:41:26.594Z" },
+]
+
+[[package]]
 name = "cycler"
 version = "0.12.1"
 source = { registry = "https://pypi.org/simple" }
@@ -2340,6 +2359,9 @@ dependencies = [
 ]
 
 [package.dev-dependencies]
+cvat = [
+    { name = "cvat-sdk" },
+]
 dev = [
     { name = "dvc", extra = ["gdrive"] },
     { name = "pyright" },
@@ -2366,6 +2388,7 @@ requires-dist = [
 ]
 
 [package.metadata.requires-dev]
+cvat = [{ name = "cvat-sdk", specifier = "~=2.66.0" }]
 dev = [
     { name = "dvc", extras = ["gdrive"], specifier = ">=3.67.1" },
     { name = "pyright", specifier = ">=1.1.414" },
