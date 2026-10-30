@@ -19,6 +19,7 @@ uv run dvc unprotect data/raw/annotations   # required because files are hardlin
 # ... edit or replace files ...
 uv run dvc add data/raw/annotations         # new hash in annotations.dvc (autostage runs git add)
 uv run dvc push                             # upload data to Google Drive first
+make data                                   # processed data e.g. yolo export depends on data/raw/annotations
 git commit
 ```
 
@@ -29,6 +30,7 @@ uv run dvc unprotect data/raw/images
 cp -r <new_cube_dir_path> data/raw/images/cube_0026
 uv run dvc add data/raw/images
 uv run dvc push
+make data                                   # processed data e.g. yolo export depends on data/raw/images
 git commit
 ```
 A flat directory of photos taken in face order (6 per cube) can be split into `cube_NNNN/`

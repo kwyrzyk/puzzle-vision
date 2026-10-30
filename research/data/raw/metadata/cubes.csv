@@ -31,3 +31,6 @@ cube_0029,3,2,D2 R' L2 B' D2 U2 F' L' B' F' R L2 U2 F D B L' D B R2 B U' B L2 U
 cube_0030,3,2,R' D L' U2 L' R F R2 F L U2 D' L' B R2 B2 F2 R2 L' U' D2 B' D2 U B2
 cube_0031,3,2,L2 U2 F D R' F' R B' L B2 L B L F R' B2 R F R F2 R' D U2 R2 F
 cube_0032,3,2,L2 D B2 F' L F2 L D B' D' U' R F2 L2 B2 L' R' B L B F L U L' U
+cube_0033,3,2,R' L' U' F' U B2 F D B' L' B2 D2 B' R F D B2 D' R D2 R2 L' U B2 U2
+cube_0034,3,2,U2 B2 D' F' B' R D' U2 L2 U' R2 B2 F' L2 F' D2 R B' F2 U' B' U' B' F2 L
+cube_0035,3,2,R L B2 U2 L U2 R' U' R B U2 R2 L2 D' F' B2 D U B L2 D' B2 F U2 D
