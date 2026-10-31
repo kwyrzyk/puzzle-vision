@@ -1,5 +1,5 @@
 split:
   train: 0.6
-  val: 0.2
-  # test: 0.2 # calculated, not read from here
+  val: 0.1
+  # test: 0.3 # calculated, not read from here
   seed: 42

@@ -1,5 +1,5 @@
 # Raw data
-Raw cube images, annotations and metadata. Images and annotations are managed by `dvc` and kept on Google Drive. Only their signatures in files `annotations.dvc` and `images.dvc` are versioned in git.
+Raw cube images, videos, annotations and metadata. Images, videos and annotations are managed by `dvc` and kept on Google Drive. Only their signatures in files `images.dvc`, `videos.dvc` and `annotations.dvc` are versioned in git.
 
 ## DVC commands
 
@@ -19,18 +19,24 @@ uv run dvc unprotect data/raw/annotations   # required because files are hardlin
 # ... edit or replace files ...
 uv run dvc add data/raw/annotations         # new hash in annotations.dvc (autostage runs git add)
 uv run dvc push                             # upload data to Google Drive first
+make data                                   # processed data e.g. yolo export depends on data/raw/annotations
 git commit
 ```
 
 ### Add new cube
 To add a new cube directory:
 ```bash
-uv run dvc unprotect data/raw/images
+uv run dvc unprotect data/raw/images        # or data/raw/videos
 cp -r <new_cube_dir_path> data/raw/images/cube_0026
 uv run dvc add data/raw/images
 uv run dvc push
+make data                                   # processed data e.g. yolo export depends on data/raw/images
 git commit
 ```
+A flat directory of photos taken in face order (6 per cube) can be split into `cube_NNNN/`
+directories with `scripts/sort_cubes.py` (numbering continues after the last cube, `--dry-run`
+to preview). `scripts/create_tasks.py` then creates one CVAT task per new cube (skips existing
+tasks, password asked interactively).
 
 ## Metadata
 | file                   | key         | description                                              |
@@ -38,6 +44,7 @@ git commit
 | `metadata/cubes.csv`   | `cube_id`   | one row per sample of 6 cube faces (`images/cube_NNNN/`) |
 | `metadata/puzzles.csv` | `puzzle_id` | physical puzzle models used for the samples              |
 | `metadata/cameras.csv` | `camera_id` | devices used to take the photos                          |
+| `metadata/videos.csv`  | `cube_id, video_id` | one row per video of scrambled cube              |
 
 `cubes.csv` columns:
 
@@ -69,4 +76,4 @@ Face at the top of the frame:
 | `2_green`, `3_orange`, `4_blue`, `5_red` | white (U)    |
 | `6_yellow.jpg`                           | red (R)      |
 
-All images: EXIF Orientation = 6 (pixels stored landscape, displayed portrait). Annotation coordinates are in display (portrait) space – apply EXIF when loading, e.g. `ImageOps.exif_transpose` (Pillow).
+Annotation coordinates are in display space – mind the EXIF Orientation when loading, e.g. ImageOps.exif_transpose (Pillow).

@@ -22,6 +22,7 @@ dependencies = [
     "matplotlib",
     "notebook",
     "numpy",
+    "opencv-python-headless>=5.0.0.93",
     "pandas",
     "pillow>=12.3.0",
     "python-dotenv",
@@ -54,7 +55,7 @@ force-sort-within-sections = true
 "notebooks/*" = ["E402"] # allow imports in all notebook cells
 
 [tool.pyright]
-include = ["puzzle_vision", "tests"]
+include = ["puzzle_vision", "scripts", "tests"]
 venvPath = "."
 venv = ".venv"
 typeCheckingMode = "basic"
@@ -63,6 +64,9 @@ typeCheckingMode = "basic"
 constraint-dependencies = ["pyopenssl>=24"]
 
 [dependency-groups]
+cvat = [
+    "cvat-sdk~=2.66.0",
+]
 dev = [
     "dvc[gdrive]>=3.67.1",
     "pyright>=1.1.414",

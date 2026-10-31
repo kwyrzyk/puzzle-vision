@@ -18,6 +18,7 @@ EXTERNAL_DATA_DIR = DATA_DIR / "external"
 
 RAW_IMAGES_DIR = RAW_DATA_DIR / "images"
 RAW_ANNOTATIONS_DIR = RAW_DATA_DIR / "annotations"
+RAW_VIDEOS_DIR = RAW_DATA_DIR / "videos"
 RAW_METADATA_DIR = RAW_DATA_DIR / "metadata"
 CVAT_ANNOTATIONS = RAW_ANNOTATIONS_DIR / "cvat_annotations.xml"
 

@@ -1,2 +1,4 @@
 # ruff
 .ruff_cache
+
+tmp/
