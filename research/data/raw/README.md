@@ -1,5 +1,5 @@
 # Raw data
-Raw cube images, annotations and metadata. Images and annotations are managed by `dvc` and kept on Google Drive. Only their signatures in files `annotations.dvc` and `images.dvc` are versioned in git.
+Raw cube images, videos, annotations and metadata. Images, videos and annotations are managed by `dvc` and kept on Google Drive. Only their signatures in files `images.dvc`, `videos.dvc` and `annotations.dvc` are versioned in git.
 
 ## DVC commands
 
@@ -26,7 +26,7 @@ git commit
 ### Add new cube
 To add a new cube directory:
 ```bash
-uv run dvc unprotect data/raw/images
+uv run dvc unprotect data/raw/images        # or data/raw/videos
 cp -r <new_cube_dir_path> data/raw/images/cube_0026
 uv run dvc add data/raw/images
 uv run dvc push
@@ -44,6 +44,7 @@ tasks, password asked interactively).
 | `metadata/cubes.csv`   | `cube_id`   | one row per sample of 6 cube faces (`images/cube_NNNN/`) |
 | `metadata/puzzles.csv` | `puzzle_id` | physical puzzle models used for the samples              |
 | `metadata/cameras.csv` | `camera_id` | devices used to take the photos                          |
+| `metadata/videos.csv`  | `cube_id, video_id` | one row per video of scrambled cube              |
 
 `cubes.csv` columns:
 
