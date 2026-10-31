@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Create one CVAT task per cube directory (cube_NNNN/).
 
 Each task gets the 6 face photos in order 1_white..6_yellow and a schema of 7 labels

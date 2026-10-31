@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Sort photos into cube directories.
 
 Photos are sorted from oldest to newest (EXIF DateTimeOriginal, falling back to mtime) and split
