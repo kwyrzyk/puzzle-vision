@@ -7,6 +7,11 @@ repos:
     hooks:
       - id: check-added-large-files # prevent adding images to repo
         args: ["--maxkb=1000"]
+        exclude: \.ipynb$
+      - id: check-added-large-files # notebooks with figure outputs
+        name: check for added large notebooks
+        args: ["--maxkb=5000"]
+        files: \.ipynb$
       - id: check-toml
       - id: check-yaml
       - id: end-of-file-fixer
