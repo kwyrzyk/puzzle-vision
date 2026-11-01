@@ -1,4 +1,8 @@
 # ruff
 .ruff_cache
 
+# IDE
+.idea/
+
+# tmp files
 tmp/
