@@ -22,8 +22,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
+import io.github.kwyrzyk.puzzlevision.ui.CameraScreen
 import org.opencv.android.OpenCVLoader
-import org.opencv.core.Core
 import io.github.kwyrzyk.puzzlevision.ui.theme.PuzzleVisionTheme
 
 class MainActivity : ComponentActivity() {
@@ -34,9 +34,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             PuzzleVisionTheme {
                 CameraPermission {
-                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text("Camera granted, OpenCV ${Core.VERSION}")
-                    }
+                    CameraScreen()
                 }
 
             }
