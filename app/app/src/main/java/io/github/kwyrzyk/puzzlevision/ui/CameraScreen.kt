@@ -47,7 +47,6 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import kotlinx.coroutines.awaitCancellation
 
 private const val FACES = 6
-private const val SHOW_BOX = 0.8f // move it to settings params latter
 
 private enum class Hint { ANY, DOWN, LEFT }
 
@@ -55,13 +54,13 @@ private enum class Hint { ANY, DOWN, LEFT }
 private val HINTS = listOf(Hint.ANY, Hint.DOWN, Hint.LEFT, Hint.LEFT, Hint.LEFT, Hint.DOWN)
 
 @Composable
-fun CameraScreen() {
+fun CameraScreen(showBox: Float, onSettings: () -> Unit) {
     var recording by remember { mutableStateOf(false) }
     var captured by remember { mutableIntStateOf(0) }
 
     Box(Modifier.fillMaxSize()) {
         CameraPreview(Modifier.fillMaxSize())
-        ShowBox(SHOW_BOX, Color.White, Modifier.fillMaxSize())
+        ShowBox(showBox, Color.White, Modifier.fillMaxSize())
 
         Box(Modifier
             .fillMaxSize()
@@ -75,7 +74,7 @@ fun CameraScreen() {
                 Icon(Icons.Filled.History, contentDescription = "Detections")
             }
             FilledTonalIconButton(
-                onClick = { /* settings onclick */ },
+                onClick = onSettings,
                 enabled = !recording,
                 modifier = Modifier.align(Alignment.TopEnd)
             ) {
