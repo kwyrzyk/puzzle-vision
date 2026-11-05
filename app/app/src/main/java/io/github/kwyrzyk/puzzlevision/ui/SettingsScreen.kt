@@ -123,8 +123,8 @@ private val AUTO_CAPTURE: List<Field> = listOf(
     real("motion", "center shift between frames / pitch", Params::motion) { p, v ->
         p.copy(motion = v)
     },
-    real("color", "sticker color from its window median", Params::color) { p, v ->
-        p.copy(color = v)
+    real("color", "sticker color from its window median", Params::colorDrift) { p, v ->
+        p.copy(colorDrift = v)
     },
     int("hold_ms", "stable time before a capture", Params::holdMs) { p, v -> p.copy(holdMs = v) },
     int("max_gap_ms", "time without a valid grid before the window drops", Params::maxGapMs) { p, v ->
