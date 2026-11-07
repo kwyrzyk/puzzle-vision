@@ -81,10 +81,6 @@ private val SEGMENTATION: List<Field> = listOf(
     int("dilation", "kernel of the edge dilation", Params::dilation) { p, v ->
         p.copy(dilation = v)
     },
-    real("rect_ratio", "longest accepted rectangle, K", Params::rectRatio) { p, v ->
-        p.copy(rectRatio = v)
-    },
-    real("m3_fraction", "limit of M3, K", Params::m3Fraction) { p, v -> p.copy(m3Fraction = v) },
     real("gamma_max", "limit of gamma, K", Params::gammaMax) { p, v -> p.copy(gammaMax = v) },
     real("sticker_min", "side / segmentation square", Params::stickerMin) { p, v ->
         p.copy(stickerMin = v)
