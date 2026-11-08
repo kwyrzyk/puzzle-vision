@@ -1,9 +1,10 @@
 package io.github.kwyrzyk.puzzlevision.ui
 
-import androidx.camera.core.CameraSelector
-import androidx.camera.core.Preview
-import androidx.camera.lifecycle.ProcessCameraProvider
-import androidx.camera.lifecycle.awaitInstance
+import androidx.camera.core.ImageAnalysis
+import androidx.camera.core.resolutionselector.ResolutionSelector
+import androidx.camera.core.resolutionselector.ResolutionStrategy
+import androidx.camera.view.CameraController
+import androidx.camera.view.LifecycleCameraController
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -23,14 +24,9 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
@@ -44,9 +40,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.compose.LocalLifecycleOwner
-import kotlinx.coroutines.awaitCancellation
-
-private const val FACES = 6
+import io.github.kwyrzyk.puzzlevision.camera.FrameAnalyzer
+import io.github.kwyrzyk.puzzlevision.vision.Point
+import java.util.concurrent.Executors
 
 private enum class Hint { ANY, DOWN, LEFT }
 
@@ -54,13 +50,16 @@ private enum class Hint { ANY, DOWN, LEFT }
 private val HINTS = listOf(Hint.ANY, Hint.DOWN, Hint.LEFT, Hint.LEFT, Hint.LEFT, Hint.DOWN)
 
 @Composable
-fun CameraScreen(showBox: Float, onSettings: () -> Unit) {
-    var recording by remember { mutableStateOf(false) }
-    var captured by remember { mutableIntStateOf(0) }
+fun CameraScreen(viewModel: MainViewModel, onSettings: () -> Unit) {
+    val params = viewModel.params
+    val recording = viewModel.recording
+    val captured = viewModel.captures.size
+    val analyzer = remember(viewModel) { FrameAnalyzer({ viewModel.params }, viewModel::onFrame) }
 
     Box(Modifier.fillMaxSize()) {
-        CameraPreview(Modifier.fillMaxSize())
-        ShowBox(showBox, Color.White, Modifier.fillMaxSize())
+        CameraPreview(analyzer, Modifier.fillMaxSize())
+        ShowBox(params.showBox.toFloat(), Color.White, Modifier.fillMaxSize())
+        GridOverlay(viewModel.liveGrid, params.segmentBox.toFloat(), Modifier.fillMaxSize())
 
         Box(Modifier
             .fillMaxSize()
@@ -86,51 +85,54 @@ fun CameraScreen(showBox: Float, onSettings: () -> Unit) {
                 modifier = Modifier.align(Alignment.BottomCenter),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                if (recording) {
-                    NextFace(HINTS[captured])
-                    TextButton(
-                        onClick = {
-                            captured++
-                            if (captured == FACES) recording = false
-                        }
-                    ) {
-                        Text("+1 (temporary)", color = Color.White)
-                    }
-                }
-                Button(
-                    onClick = {
-                        if (!recording) captured = 0
-                        recording = !recording
-                    },
-                ) {
+                if (recording) NextFace(HINTS[captured])
+                Button(onClick = { if (recording) viewModel.stop() else viewModel.start() }) {
                     Text(if (recording) "STOP" else "START")
                 }
             }
         }
     }
 }
-
+/** Preview and analysis share the crop of the screen, so the boxes match the analyzed square */
 @Composable
-private fun CameraPreview(modifier: Modifier = Modifier) {
+private fun CameraPreview(analyzer: ImageAnalysis.Analyzer, modifier: Modifier = Modifier) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
-    val previewView = remember {
-        PreviewView(context).apply { scaleType = PreviewView.ScaleType.FILL_CENTER }
-    }
-
-    LaunchedEffect(lifecycleOwner) {
-        val provider = ProcessCameraProvider.awaitInstance(context)
-        val preview = Preview.Builder().build()
-        preview.setSurfaceProvider(previewView.surfaceProvider)
-        provider.bindToLifecycle(lifecycleOwner, CameraSelector.DEFAULT_BACK_CAMERA, preview)
-        try {
-            awaitCancellation()
-        } finally {
-            provider.unbindAll()
+    val controller = remember {
+        LifecycleCameraController(context).apply {
+            setEnabledUseCases(CameraController.IMAGE_ANALYSIS) // preview is always on
+            setImageAnalysisOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_RGBA_8888)
+            setImageAnalysisResolutionSelector(
+                ResolutionSelector.Builder()
+                    .setResolutionStrategy(
+                        ResolutionStrategy(
+                            android.util.Size(1280, 960),
+                            ResolutionStrategy.FALLBACK_RULE_CLOSEST_HIGHER_THEN_LOWER
+                        )
+                    )
+                    .build()
+            )
         }
     }
 
-    AndroidView(factory = { previewView }, modifier = modifier)
+    DisposableEffect(lifecycleOwner, analyzer) {
+        val executor = Executors.newSingleThreadExecutor()
+        controller.setImageAnalysisAnalyzer(executor, analyzer)
+        controller.bindToLifecycle(lifecycleOwner)
+        onDispose {
+            controller.clearImageAnalysisAnalyzer()
+            controller.unbind()
+            executor.shutdown()
+        }
+    }
+    AndroidView(
+        factory = {
+            PreviewView(it).apply {
+                scaleType = PreviewView.ScaleType.FILL_CENTER
+                this.controller = controller
+            }
+        },
+        modifier = modifier)
 }
 
 @Composable
@@ -144,6 +146,32 @@ private fun ShowBox(fraction: Float, color: Color, modifier: Modifier = Modifier
             cornerRadius = CornerRadius(16.dp.toPx()),
             style = Stroke(width = 3.dp.toPx()),
         )
+    }
+}
+
+/** Sticker centers as dots and the grid lines; green when the grid passed the gate */
+@Composable
+private fun GridOverlay(liveGrid: LiveGrid?, segmentBox: Float, modifier: Modifier = Modifier) {
+    Canvas(modifier) {
+        if (liveGrid == null) return@Canvas
+        // The segmentation square is segment_box x the screen width, in the middle
+        val side = segmentBox * size.width
+        val left = (size.width - side) / 2
+        val top = (size.height - side) / 2
+        val scale = side / liveGrid.width
+        fun at(p: Point) = Offset(left + p.x.toFloat() * scale, top + p.y.toFloat() * scale)
+
+        for (center in liveGrid.stickers) {
+            drawCircle(Color.White, radius = 4.dp.toPx(), center = at(center))
+        }
+        val grid = liveGrid.grid ?: return@Canvas
+        val color = if (liveGrid.passed) Color.Green else Color.Red
+        val width = 3.dp.toPx()
+        for (i in 0..2) {
+            drawLine(color, at(grid[3 * i]), at(grid[3 * i + 2]), width) // row
+            drawLine(color, at(grid[i]), at(grid[i + 6]), width) // column
+        }
+
     }
 }
 

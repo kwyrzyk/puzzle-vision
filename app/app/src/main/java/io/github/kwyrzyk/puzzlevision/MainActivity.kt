@@ -55,7 +55,7 @@ private fun App(viewModel: MainViewModel = viewModel()) {
 
     when (screen) {
         Screen.CAMERA -> CameraScreen(
-            showBox = viewModel.params.showBox.toFloat(),
+            viewModel = viewModel,
             onSettings = { screen = Screen.SETTINGS },
         )
 
