@@ -132,6 +132,9 @@ private fun SessionDetail(session: Session, modifier: Modifier) {
                 }
             }
         }
+
+        Text("Timelines", style = MaterialTheme.typography.titleMedium)
+        Timelines(session.frames, session.params)
     }
 }
 

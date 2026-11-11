@@ -3,6 +3,7 @@ package io.github.kwyrzyk.puzzlevision.ui
 import android.app.Application
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import io.github.kwyrzyk.puzzlevision.data.FrameEvent
 import io.github.kwyrzyk.puzzlevision.data.Session
 import io.github.kwyrzyk.puzzlevision.data.SessionStore
 import io.github.kwyrzyk.puzzlevision.vision.BLUE
@@ -85,6 +86,9 @@ class MainViewModelTest {
         val session = savedSession { it.state == state.toString() }
         assertEquals(viewModel.captures.map { it.colors }, session.faces.map { it.colors })
         assertEquals(viewModel.params, session.params)
+        // 4 frames per face, the last of each a capture
+        assertEquals(24, session.frames.size)
+        assertEquals(6, session.frames.count { it.event == FrameEvent.CAPTURE })
     }
 
     @Test

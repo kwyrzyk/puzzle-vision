@@ -10,9 +10,11 @@ import androidx.lifecycle.viewModelScope
 import io.github.kwyrzyk.puzzlevision.cube.CubeState
 import io.github.kwyrzyk.puzzlevision.cube.classify
 import io.github.kwyrzyk.puzzlevision.data.SavedFace
+import io.github.kwyrzyk.puzzlevision.data.SavedFrame
 import io.github.kwyrzyk.puzzlevision.data.Session
 import io.github.kwyrzyk.puzzlevision.data.SessionStore
 import io.github.kwyrzyk.puzzlevision.data.SettingsStore
+import io.github.kwyrzyk.puzzlevision.data.savedFrameOf
 import io.github.kwyrzyk.puzzlevision.vision.AutoCapture
 import io.github.kwyrzyk.puzzlevision.vision.Capture
 import io.github.kwyrzyk.puzzlevision.vision.Frame
@@ -46,6 +48,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     private var sessionStartedAt = 0L
 
+    // Frames of the running session, for the timelines; main thread only
+    private val frames = mutableListOf<SavedFrame>()
+
     /** Saved sessions, the newest first, as of the last [loadDetections] */
     var detections by mutableStateOf<List<Session>>(emptyList())
         private set
@@ -61,6 +66,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun start() {
         captures.clear()
+        frames.clear()
         result = null
         sessionStartedAt = System.currentTimeMillis()
         session = AutoCapture(params)
@@ -80,9 +86,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         // The UI state changes on the main thread
         viewModelScope.launch {
             this@MainViewModel.liveGrid = liveGrid
-            val capture = trace?.capture
-            // A frame of a stopped session must not add a face
-            if (capture != null && !capture.duplicate && session === this@MainViewModel.session) {
+            // A frame of a stopped session must not add a frame or a face
+            if (trace == null || session !== this@MainViewModel.session) return@launch
+            frames += savedFrameOf(trace)
+            val capture = trace.capture
+            if (capture != null && !capture.duplicate) {
                 captures += capture
                 if (captures.size == FACES) {
                     stop()
@@ -97,7 +105,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         val faces = captures.map { SavedFace(it.first, it.last, it.colors) }
         val state = classify(faces.map { it.colors }, params)
         result = state
-        val session = Session(sessionStartedAt, params, faces, state.toString())
+        val session = Session(sessionStartedAt, params, faces, state.toString(), frames.toList())
         viewModelScope.launch(writer) { sessions.save(session) }
     }
 

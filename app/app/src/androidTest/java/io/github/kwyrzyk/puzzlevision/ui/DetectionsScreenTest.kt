@@ -5,7 +5,9 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import io.github.kwyrzyk.puzzlevision.data.FrameEvent
 import io.github.kwyrzyk.puzzlevision.data.SavedFace
+import io.github.kwyrzyk.puzzlevision.data.SavedFrame
 import io.github.kwyrzyk.puzzlevision.data.Session
 import io.github.kwyrzyk.puzzlevision.vision.Lab
 import io.github.kwyrzyk.puzzlevision.vision.Params
@@ -29,7 +31,13 @@ class DetectionsScreenTest {
         state = state,
     )
 
-    private val older = sessionAt(1_762_000_000_000, solved)
+    private val older = sessionAt(1_762_000_000_000, solved).copy(
+        frames = listOf(
+            SavedFrame(t = 0, tilt = 3.0, skew = 1.0),
+            SavedFrame(t = 100, tilt = 4.0, skew = 2.0, window = true),
+            SavedFrame(t = 400, tilt = 4.0, skew = 2.0, window = true, event = FrameEvent.CAPTURE),
+        ),
+    )
     private val newer = sessionAt(1_762_100_000_000, scrambled)
     private var backs = 0
 
@@ -80,5 +88,25 @@ class DetectionsScreenTest {
         compose.onNodeWithContentDescription("Back").performClick()
 
         assertEquals(1, backs)
+    }
+
+    @Test
+    fun aSessionShowsTheTimelinesOfItsFrames() {
+        show(listOf(newer, older))
+
+        compose.onNodeWithText(dateOf(older.startedAt)).performClick()
+
+        for (name in listOf("tilt", "skew", "rotation", "align", "size", "motion", "color")) {
+            compose.onNodeWithText(name).assertExists()
+        }
+    }
+
+    @Test
+    fun aSessionWithoutFramesSaysSo() {
+        show(listOf(newer, older))
+
+        compose.onNodeWithText(dateOf(newer.startedAt)).performClick()
+
+        compose.onNodeWithText("No frames saved").assertExists()
     }
 }

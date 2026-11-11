@@ -1,5 +1,6 @@
 package io.github.kwyrzyk.puzzlevision.data
 
+import io.github.kwyrzyk.puzzlevision.vision.FrameTrace
 import io.github.kwyrzyk.puzzlevision.vision.Lab
 import io.github.kwyrzyk.puzzlevision.vision.Params
 import java.io.File
@@ -14,6 +15,44 @@ import kotlinx.serialization.json.Json
 @Serializable
 data class SavedFace(val first: Long, val last: Long, val colors: List<Lab>)
 
+/** What a frame of a session ended with; the JSON values are those of notebook 3.3 */
+@Serializable
+enum class FrameEvent {
+    @SerialName("capture") CAPTURE,
+    @SerialName("duplicate") DUPLICATE,
+}
+
+/**
+ * One processed frame, a row of the timeline of notebook 3.3 with its column names.
+ * Metrics of the candidate with the smallest align; null without one.
+ */
+@Serializable
+data class SavedFrame(
+    val t: Long, // ms of the camera clock
+    val size: Double? = null,
+    val align: Double? = null,
+    val tilt: Double? = null,
+    val skew: Double? = null,
+    val rotation: Double? = null,
+    val motion: Double? = null,
+    @SerialName("color") val colorDrift: Double? = null,
+    val window: Boolean = false,
+    val event: FrameEvent? = null,
+)
+
+fun savedFrameOf(trace: FrameTrace) = SavedFrame(
+    t = trace.t,
+    size = trace.metrics?.size,
+    align = trace.metrics?.align,
+    tilt = trace.metrics?.tilt,
+    skew = trace.metrics?.skew,
+    rotation = trace.metrics?.rotation,
+    motion = trace.motion,
+    colorDrift = trace.colorDrift,
+    window = trace.window,
+    event = trace.capture?.let { if (it.duplicate) FrameEvent.DUPLICATE else FrameEvent.CAPTURE },
+)
+
 /** One complete session, for the Detections screen and for replay in research */
 @Serializable
 data class Session(
@@ -21,6 +60,7 @@ data class Session(
     val params: Params,
     val faces: List<SavedFace>, // 6 saved faces in PHOTO_ORDER
     val state: String, // Kociemba's facelet string
+    val frames: List<SavedFrame> = emptyList(), // none in sessions saved before step 8
 )
 
 /** Sessions as JSON files in `sessions/`, one per session, named by its start */

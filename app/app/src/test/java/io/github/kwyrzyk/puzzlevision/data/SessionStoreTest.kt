@@ -23,6 +23,11 @@ class SessionStoreTest {
             SavedFace(1000L * k, 1000L * k + 300, List(9) { Lab(30.0, k.toDouble(), -1.5) })
         },
         state = "UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB",
+        frames = listOf(
+            SavedFrame(t = 0),
+            SavedFrame(t = 100, size = 1.1, align = 0.05, motion = 0.02, window = true),
+            SavedFrame(t = 200, colorDrift = 1.5, window = true, event = FrameEvent.CAPTURE),
+        ),
     )
 
     @Test
@@ -71,5 +76,24 @@ class SessionStoreTest {
         File(sessions, "notes.txt").writeText("not a session")
 
         assertEquals(listOf(5L), store.load().map { it.startedAt })
+    }
+
+    @Test
+    fun frameUsesNotebookColumns() {
+        store.save(sessionAt(5))
+
+        val text = File(sessions, "5.json").readText()
+        assertTrue(text.contains("\"color\": 1.5"))
+        assertTrue(text.contains("\"event\": \"capture\""))
+    }
+
+    @Test
+    fun sessionSavedBeforeFramesIsLoadedWithoutThem() {
+        store.save(sessionAt(5))
+        val file = File(sessions, "5.json")
+        val withoutFrames = Regex(""",\s*"frames": \[.*]""", RegexOption.DOT_MATCHES_ALL)
+        file.writeText(file.readText().replace(withoutFrames, ""))
+
+        assertEquals(listOf(sessionAt(5).copy(frames = emptyList())), store.load())
     }
 }
