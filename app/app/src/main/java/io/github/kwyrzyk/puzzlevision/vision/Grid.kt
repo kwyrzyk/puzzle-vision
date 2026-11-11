@@ -1,5 +1,6 @@
 package io.github.kwyrzyk.puzzlevision.vision
 
+import kotlinx.serialization.Serializable
 import kotlin.math.abs
 import kotlin.math.acos
 import kotlin.math.atan2
@@ -13,6 +14,7 @@ data class Point(val x: Double, val y: Double) {
 }
 
 /** Lab color with L multiplied by `l_weight`. */
+@Serializable
 data class Lab(val l: Double, val a: Double, val b: Double) {
     fun distanceTo(other: Lab): Double {
         val dl = l - other.l

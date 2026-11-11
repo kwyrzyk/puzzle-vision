@@ -13,6 +13,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
@@ -99,6 +100,17 @@ fun CameraScreen(viewModel: MainViewModel, onSettings: () -> Unit) {
                 Icon(Icons.Filled.Settings, contentDescription = "Settings")
             }
             Label("$captured/$FACES", Modifier.align(Alignment.TopCenter))
+
+            viewModel.result?.let { state ->
+                CubeNet(
+                    state,
+                    Modifier
+                        .align(Alignment.Center)
+                        .fillMaxWidth()
+                        .background(Color.Black.copy(alpha = 0.5f), RoundedCornerShape(8.dp))
+                        .padding(8.dp),
+                )
+            }
 
             Column(
                 modifier = Modifier.align(Alignment.BottomCenter),

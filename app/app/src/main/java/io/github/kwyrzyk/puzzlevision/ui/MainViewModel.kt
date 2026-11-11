@@ -7,6 +7,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import io.github.kwyrzyk.puzzlevision.cube.CubeState
+import io.github.kwyrzyk.puzzlevision.cube.classify
+import io.github.kwyrzyk.puzzlevision.data.SavedFace
+import io.github.kwyrzyk.puzzlevision.data.Session
+import io.github.kwyrzyk.puzzlevision.data.SessionStore
 import io.github.kwyrzyk.puzzlevision.data.SettingsStore
 import io.github.kwyrzyk.puzzlevision.vision.AutoCapture
 import io.github.kwyrzyk.puzzlevision.vision.Capture
@@ -18,6 +23,7 @@ import kotlinx.coroutines.launch
 const val FACES = 6
 
 class MainViewModel(application: Application) : AndroidViewModel(application) {
+    private val sessions = SessionStore(application.filesDir)
     private val settings = SettingsStore(application.filesDir)
     private val writer = Dispatchers.IO.limitedParallelism(1) // saves in the order of edits
 
@@ -33,6 +39,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     var liveGrid by mutableStateOf<LiveGrid?>(null)
         private set
 
+    /** Colors of the cube of the last complete session; null while recording */
+    var result by mutableStateOf<CubeState?>(null)
+        private set
+
+    private var sessionStartedAt = 0L
+
     // Written on the main thread, read on the analysis thread
     @Volatile
     private var session: AutoCapture? = null
@@ -44,6 +56,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun start() {
         captures.clear()
+        result = null
+        sessionStartedAt = System.currentTimeMillis()
         session = AutoCapture(params)
         recording = true
     }
@@ -65,8 +79,20 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             // A frame of a stopped session must not add a face
             if (capture != null && !capture.duplicate && session === this@MainViewModel.session) {
                 captures += capture
-                if (captures.size == FACES) stop()
+                if (captures.size == FACES) {
+                    stop()
+                    finish()
+                }
             }
         }
+    }
+
+    /** Classifies the 6 faces and saves the session; takes a few ms, fine on the main thread */
+    private fun finish() {
+        val faces = captures.map { SavedFace(it.first, it.last, it.colors) }
+        val state = classify(faces.map { it.colors }, params)
+        result = state
+        val session = Session(sessionStartedAt, params, faces, state.toString())
+        viewModelScope.launch(writer) { sessions.save(session) }
     }
 }

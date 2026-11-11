@@ -3,6 +3,8 @@ package io.github.kwyrzyk.puzzlevision.ui
 import android.app.Application
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import io.github.kwyrzyk.puzzlevision.data.Session
+import io.github.kwyrzyk.puzzlevision.data.SessionStore
 import io.github.kwyrzyk.puzzlevision.vision.BLUE
 import io.github.kwyrzyk.puzzlevision.vision.Detector
 import io.github.kwyrzyk.puzzlevision.vision.FACE
@@ -16,6 +18,7 @@ import io.github.kwyrzyk.puzzlevision.vision.frame
 import io.github.kwyrzyk.puzzlevision.vision.syntheticFace
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.BeforeClass
@@ -23,6 +26,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.opencv.android.OpenCVLoader
 import org.opencv.core.Scalar
+import java.io.File
 
 /** The session as the camera drives it: frames come from a background thread */
 @RunWith(AndroidJUnit4::class)
@@ -65,6 +69,50 @@ class MainViewModelTest {
 
         assertEquals(6, viewModel.captures.size)
         assertFalse(viewModel.recording)
+    }
+
+    @Test
+    fun sixFacesAreClassifiedAndSaved() {
+        instrumentation.runOnMainSync { viewModel.start() }
+
+        for (center in listOf(WHITE, YELLOW, RED, ORANGE, BLUE, GREEN)) {
+            hold(faceWithCenter(center))
+        }
+
+        val state = viewModel.result!!
+        assertTrue(state.colors.groupingBy { it }.eachCount().values.all { it == 9 })
+        // Saved on a background thread; the newest session is this one
+        val session = savedSession { it.state == state.toString() }
+        assertEquals(viewModel.captures.map { it.colors }, session.faces.map { it.colors })
+        assertEquals(viewModel.params, session.params)
+    }
+
+    @Test
+    fun startHidesTheLastResult() {
+        instrumentation.runOnMainSync { viewModel.start() }
+        for (center in listOf(WHITE, YELLOW, RED, ORANGE, BLUE, GREEN)) {
+            hold(faceWithCenter(center))
+        }
+        savedSession { it.state == viewModel.result.toString() }
+
+        instrumentation.runOnMainSync { viewModel.start() }
+
+        assertNull(viewModel.result)
+    }
+
+    /** The newest saved session once it matches, within 5 s; deleted, so tests leave no files */
+    private fun savedSession(matches: (Session) -> Boolean): Session {
+        val store = SessionStore(instrumentation.targetContext.filesDir)
+        repeat(50) {
+            val newest = store.load().firstOrNull()
+            if (newest != null && matches(newest)) {
+                File(instrumentation.targetContext.filesDir, "sessions/${newest.startedAt}.json")
+                    .delete()
+                return newest
+            }
+            Thread.sleep(100)
+        }
+        throw AssertionError("session not saved")
     }
 
     @Test
