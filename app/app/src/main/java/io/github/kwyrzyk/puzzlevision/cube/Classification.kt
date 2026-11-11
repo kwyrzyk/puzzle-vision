@@ -9,12 +9,13 @@ import java.util.PriorityQueue
  *
  * [faces] are in [PHOTO_ORDER], each 9 colors in reading order (Lab, L weighted). Pieces go
  * to the legal state closest to the center colors; the colors are then named by the rotation
- * of the cube closest to the palette, so the first face may be any.
+ * of the cube closest to the palette, so the first face may be any. The result is turned to
+ * white up, green in front.
  */
 fun classify(faces: List<List<Lab>>, p: Params): CubeState {
     val features = featuresOf(faces)
     val state = pieceAssignment(features)
-    return lowestCostColorsFitted(state, features, paletteOf(p))
+    return lowestCostColorsFitted(state, features, paletteOf(p)).standardOrientation()
 }
 
 /** Color of each facelet: face k of [faces] is [PHOTO_ORDER] k, turned as [PHOTO_TOP] */

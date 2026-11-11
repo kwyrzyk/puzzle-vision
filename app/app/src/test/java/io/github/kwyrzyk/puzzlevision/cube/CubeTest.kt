@@ -48,4 +48,24 @@ class CubeTest {
 
         assertEquals(solved, CubeState.of(solved).toString())
     }
+
+    @Test
+    fun standardCubeKeepsItsOrientation() {
+        val scrambled = CubeState.of(SCRAMBLED)
+
+        assertEquals(scrambled, scrambled.standardOrientation())
+    }
+
+    @Test
+    fun turnedCubeIsTurnedToWhiteUpGreenFront() {
+        // SCRAMBLED turned about the R axis: green up, white at the back
+        val turned = CubeState.of("BLUBBUFFUFBBLRRRDRDDLFUFFBBUDULFRBUFDRLLLRDURLBRUDDDFL")
+
+        assertEquals(CubeState.of(SCRAMBLED), turned.standardOrientation())
+    }
+
+    private companion object {
+        // R U R' U' F2 D L' B2 U2 R D' F, from CubeState.from_scramble
+        const val SCRAMBLED = "DDLFUFFBBRLFDRBRRBUDULFRBUFLFDDDURBLLRRRLUDLDUFFUBBULB"
+    }
 }

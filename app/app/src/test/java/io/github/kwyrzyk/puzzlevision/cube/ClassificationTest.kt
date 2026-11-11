@@ -47,10 +47,12 @@ class ClassificationTest {
 
     @Test
     fun firstFaceMayBeAny() {
-        // The scrambled cube turned about the R axis: white is not up, green not in front
+        // The scrambled cube turned about the R axis: white is not up, green not in front;
+        // the result is turned back
         val turned = CubeState.of("BLUBBUFFUFBBLRRRDRDDLFUFFBBUDULFRBUFDRLLLRDURLBRUDDDFL")
+        val scrambled = CubeState.of("DDLFUFFBBRLFDRBRRBUDULFRBUFLFDDDURBLLRRRLUDLDUFFUBBULB")
 
-        assertEquals(turned, classify(capturesOf(turned), params))
+        assertEquals(scrambled, classify(capturesOf(turned), params))
     }
 
     @Test
@@ -80,8 +82,8 @@ class ClassificationTest {
     }
 
     @Test
-    fun everyColorIsOn9Facelets() {
-        // Colors that fit no cube still give a legal state
+    fun everyColorIsOn9FaceletsAndCentersAreStandard() {
+        // Colors that fit no cube still give a legal state, white up and green in front
         val noise = java.util.Random(0)
         val random = { _: Face ->
             Lab(
@@ -93,6 +95,7 @@ class ClassificationTest {
         val state = classify(capturesOf(solved, random), params)
 
         assertTrue(state.colors.groupingBy { it }.eachCount().values.all { it == 9 })
+        assertEquals(Face.entries, Face.entries.map { state.colors[idOf(it, CENTER)] })
     }
 
     /** The captures with the color of one facelet replaced */

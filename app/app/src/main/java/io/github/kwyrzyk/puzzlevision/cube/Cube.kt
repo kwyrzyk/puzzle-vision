@@ -100,6 +100,20 @@ data class CubeState(val colors: List<Face>) {
     /** Kociemba's facelet string, e.g. UUUUUUUUURRR... for the solved cube */
     override fun toString(): String = colors.joinToString("") { it.name }
 
+    /** Cube held with standard WCA notation - white up, green front */
+    fun standardOrientation(): CubeState {
+        val image = Face.entries.associateWith { colors[idOf(it, CENTER)] }
+        val x = image.getValue(Face.R).normal
+        val y = image.getValue(Face.U).normal
+        val z = image.getValue(Face.F).normal
+        val turned = arrayOfNulls<Face>(FACELETS.size)
+        for ((id, facelet) in FACELETS.withIndex()) {
+            val p = facelet.position
+            turned[idAt(x * p.x + y * p.y + z * p.z, image.getValue(facelet.face))] = colors[id]
+        }
+        return CubeState(turned.requireNoNulls().toList())
+    }
+
     companion object {
         fun of(facelets: String) = CubeState(facelets.map(::faceOf))
     }
