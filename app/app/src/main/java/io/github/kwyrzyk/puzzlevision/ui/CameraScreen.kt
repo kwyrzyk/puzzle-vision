@@ -6,6 +6,8 @@ import androidx.camera.core.resolutionselector.ResolutionStrategy
 import androidx.camera.view.CameraController
 import androidx.camera.view.LifecycleCameraController
 import androidx.camera.view.PreviewView
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -26,6 +28,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -34,6 +37,8 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -56,9 +61,23 @@ fun CameraScreen(viewModel: MainViewModel, onSettings: () -> Unit) {
     val captured = viewModel.captures.size
     val analyzer = remember(viewModel) { FrameAnalyzer({ viewModel.params }, viewModel::onFrame) }
 
+    // After each capture: 0 to 1 and back 3 times; the box blinks green, the hint pulses
+    val flash = remember { Animatable(0f) }
+    LaunchedEffect(captured) {
+        if (captured == 0) return@LaunchedEffect
+        repeat(3) {
+            flash.animateTo(1f, tween(150))
+            flash.animateTo(0f, tween(150))
+        }
+    }
+
     Box(Modifier.fillMaxSize()) {
         CameraPreview(analyzer, Modifier.fillMaxSize())
-        ShowBox(params.showBox.toFloat(), Color.White, Modifier.fillMaxSize())
+        ShowBox(
+            params.showBox.toFloat(),
+            lerp(Color.White, Color.Green, flash.value),
+            Modifier.fillMaxSize(),
+        )
         GridOverlay(viewModel.liveGrid, params.segmentBox.toFloat(), Modifier.fillMaxSize())
 
         Box(Modifier
@@ -85,7 +104,14 @@ fun CameraScreen(viewModel: MainViewModel, onSettings: () -> Unit) {
                 modifier = Modifier.align(Alignment.BottomCenter),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                if (recording) NextFace(HINTS[captured])
+                if (recording) {
+                    Box(Modifier.graphicsLayer {
+                        scaleX = 1 + 0.5f * flash.value
+                        scaleY = 1 + 0.5f * flash.value
+                    }) {
+                        NextFace(HINTS[captured])
+                    }
+                }
                 Button(onClick = { if (recording) viewModel.stop() else viewModel.start() }) {
                     Text(if (recording) "STOP" else "START")
                 }
