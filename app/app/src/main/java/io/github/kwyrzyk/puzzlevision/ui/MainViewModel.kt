@@ -19,6 +19,7 @@ import io.github.kwyrzyk.puzzlevision.vision.Frame
 import io.github.kwyrzyk.puzzlevision.vision.Params
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 const val FACES = 6
 
@@ -44,6 +45,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         private set
 
     private var sessionStartedAt = 0L
+
+    /** Saved sessions, the newest first, as of the last [loadDetections] */
+    var detections by mutableStateOf<List<Session>>(emptyList())
+        private set
 
     // Written on the main thread, read on the analysis thread
     @Volatile
@@ -94,5 +99,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         result = state
         val session = Session(sessionStartedAt, params, faces, state.toString())
         viewModelScope.launch(writer) { sessions.save(session) }
+    }
+
+    /** Reads the saved sessions; on the writer, so after every save queued before */
+    fun loadDetections() {
+        viewModelScope.launch {
+            detections = withContext(writer) { sessions.load() }
+        }
     }
 }

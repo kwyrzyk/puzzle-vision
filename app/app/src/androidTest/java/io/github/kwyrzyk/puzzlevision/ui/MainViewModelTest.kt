@@ -88,6 +88,26 @@ class MainViewModelTest {
     }
 
     @Test
+    fun savedSessionIsListedInDetections() {
+        instrumentation.runOnMainSync { viewModel.start() }
+        for (center in listOf(WHITE, YELLOW, RED, ORANGE, BLUE, GREEN)) {
+            hold(faceWithCenter(center))
+        }
+
+        // Queued after the save, so the list already has this session
+        instrumentation.runOnMainSync { viewModel.loadDetections() }
+        val state = viewModel.result.toString()
+        for (attempt in 1..50) {
+            instrumentation.waitForIdleSync()
+            if (viewModel.detections.firstOrNull()?.state == state) break
+            Thread.sleep(100)
+        }
+
+        assertEquals(state, viewModel.detections.first().state)
+        savedSession { it.state == state }
+    }
+
+    @Test
     fun startHidesTheLastResult() {
         instrumentation.runOnMainSync { viewModel.start() }
         for (center in listOf(WHITE, YELLOW, RED, ORANGE, BLUE, GREEN)) {

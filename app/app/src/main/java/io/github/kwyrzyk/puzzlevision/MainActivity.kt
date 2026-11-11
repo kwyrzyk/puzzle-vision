@@ -28,6 +28,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import io.github.kwyrzyk.puzzlevision.ui.CameraScreen
 import org.opencv.android.OpenCVLoader
 import io.github.kwyrzyk.puzzlevision.ui.theme.PuzzleVisionTheme
+import io.github.kwyrzyk.puzzlevision.ui.DetectionsScreen
 import io.github.kwyrzyk.puzzlevision.ui.MainViewModel
 import io.github.kwyrzyk.puzzlevision.ui.SettingsScreen
 
@@ -47,7 +48,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-private enum class Screen { CAMERA, SETTINGS }
+private enum class Screen { CAMERA, SETTINGS, DETECTIONS }
 
 @Composable
 private fun App(viewModel: MainViewModel = viewModel()) {
@@ -57,6 +58,7 @@ private fun App(viewModel: MainViewModel = viewModel()) {
         Screen.CAMERA -> CameraScreen(
             viewModel = viewModel,
             onSettings = { screen = Screen.SETTINGS },
+            onDetections = { screen = Screen.DETECTIONS },
         )
 
         Screen.SETTINGS -> {
@@ -64,7 +66,17 @@ private fun App(viewModel: MainViewModel = viewModel()) {
             SettingsScreen(
                 params = viewModel.params,
                 onChange = viewModel::updateParams,
-                onBack = { screen = Screen.CAMERA }
+                onBack = { screen = Screen.CAMERA },
+            )
+        }
+
+        Screen.DETECTIONS -> {
+            BackHandler { screen = Screen.CAMERA }
+            // Every time the screen opens, so a session saved since is listed
+            LaunchedEffect(Unit) { viewModel.loadDetections() }
+            DetectionsScreen(
+                sessions = viewModel.detections,
+                onBack = { screen = Screen.CAMERA },
             )
         }
     }

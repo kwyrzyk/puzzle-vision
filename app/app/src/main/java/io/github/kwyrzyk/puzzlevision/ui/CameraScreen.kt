@@ -56,7 +56,11 @@ private enum class Hint { ANY, DOWN, LEFT }
 private val HINTS = listOf(Hint.ANY, Hint.DOWN, Hint.LEFT, Hint.LEFT, Hint.LEFT, Hint.DOWN)
 
 @Composable
-fun CameraScreen(viewModel: MainViewModel, onSettings: () -> Unit) {
+fun CameraScreen(
+    viewModel: MainViewModel,
+    onSettings: () -> Unit,
+    onDetections: () -> Unit,
+) {
     val params = viewModel.params
     val recording = viewModel.recording
     val captured = viewModel.captures.size
@@ -86,7 +90,7 @@ fun CameraScreen(viewModel: MainViewModel, onSettings: () -> Unit) {
             .safeDrawingPadding()
             .padding(16.dp)) {
             FilledTonalIconButton(
-                onClick = { /* detections button onclick */ },
+                onClick = onDetections,
                 enabled = !recording,
                 modifier = Modifier.align(Alignment.TopStart)
             ) {
