@@ -20,7 +20,27 @@ RAW_IMAGES_DIR = RAW_DATA_DIR / "images"
 RAW_ANNOTATIONS_DIR = RAW_DATA_DIR / "annotations"
 RAW_VIDEOS_DIR = RAW_DATA_DIR / "videos"
 RAW_METADATA_DIR = RAW_DATA_DIR / "metadata"
-CVAT_ANNOTATIONS = RAW_ANNOTATIONS_DIR / "cvat_annotations.xml"
+
+PUZZLE_3X3, PUZZLE_CLOCK = "3x3", "clock"
+PUZZLE_TYPES = (PUZZLE_3X3, PUZZLE_CLOCK)
+
+
+def raw_images_dir(puzzle: str) -> Path:
+    return RAW_IMAGES_DIR / puzzle
+
+
+def raw_videos_dir(puzzle: str) -> Path:
+    return RAW_VIDEOS_DIR / puzzle
+
+
+def cvat_annotations(puzzle: str) -> Path:
+    return RAW_ANNOTATIONS_DIR / f"{puzzle}.xml"
+
+
+def raw_metadata(puzzle: str, table: str = "") -> Path:
+    """metadata/<type>.csv (the samples), or metadata/<type>_<table>.csv"""
+    return RAW_METADATA_DIR / f"{puzzle}{f'_{table}' if table else ''}.csv"
+
 
 MODELS_DIR = PROJ_ROOT / "models"
 

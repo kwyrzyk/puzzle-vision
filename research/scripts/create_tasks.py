@@ -1,7 +1,9 @@
-"""Create one CVAT task per cube directory (cube_NNNN/).
+"""Create one CVAT task per sample directory root/<puzzle type>/cube_NNNN/.
 
-Each task gets the 6 face photos in order 1_white..6_yellow and a schema of 7 labels
-(face + 6 colors with a position attribute).
+A 3x3 task gets the 6 face photos in order 1_white..6_yellow and a schema of 7 labels
+(face + 6 colors with a position attribute). A clock task (--puzzle clock) gets 1_front, 2_back
+and the labels 'clock' (polygon, outline of the body) and '1'..'12' (rectangle around a dial,
+the hour it shows). Each puzzle type has its own CVAT project.
 
 Idempotent: cubes whose task with the same name already exists on the server are skipped,
 so it can be run repeatedly without creating duplicates.
@@ -20,6 +22,10 @@ Usage:
     uv run --group cvat python scripts/create_tasks.py data/raw/images \
         --host http://localhost:8080 --user LOGIN --from 5 --to 10
 
+    # Rubik's Clock, into its own project:
+    uv run --group cvat python scripts/create_tasks.py data/raw/images \
+        --host http://localhost:8080 --user LOGIN --puzzle clock --project-id 2
+
     # into a project (tasks inherit its labels):
     uv run --group cvat python scripts/create_tasks.py data/raw/images \
         --host http://localhost:8080 --user LOGIN --project-id 1
@@ -31,24 +37,29 @@ from pathlib import Path
 import re
 import sys
 
-# Face order = file order in the task
-FACES = ["white", "green", "orange", "blue", "red", "yellow"]
-FACES_PER_CUBE = len(FACES)
+# Face order = file order in the task, per puzzle type (= directory in root)
+SIDES = {
+    "3x3": ["white", "green", "orange", "blue", "red", "yellow"],
+    "clock": ["front", "back"],
+}
 IMAGE_EXTS = {".jpg", ".jpeg", ".png"}
 
 POSITIONS = ["unset", "center", "edge", "corner"]
+HOURS = [str(hour) for hour in range(1, 13)]  # clock dial labels, 12 = no turn
 
 
 def cube_number(name: str) -> int | None:
     """Number from a directory name, cube_0007 -> 7; None if there is none."""
-    m = re.search(r"cube_(\d+)", name)
+    m = re.search(r"_(\d+)$", name)
     return int(m.group(1)) if m else None
 
 
 def find_cube_dirs(
-    root: Path, lo: int | None = None, hi: int | None = None
+    root: Path, lo: int | None = None, hi: int | None = None, puzzle: str = "3x3"
 ) -> list[tuple[str, list[Path]]]:
-    """Sorted (name, [6 paths]) for cubes in range [lo, hi]."""
+    """Sorted (name, [photo paths]) for samples of root/<puzzle> in range [lo, hi]."""
+    faces_per_cube = len(SIDES[puzzle])
+    root = root / puzzle
     cube_dirs = sorted(d for d in root.iterdir() if d.is_dir() and d.name.startswith("cube_"))
     if not cube_dirs:
         sys.exit(f"ERROR: no cube_* directories in {root}")
@@ -64,11 +75,11 @@ def find_cube_dirs(
             for p in d.iterdir()
             if p.suffix.lower() in IMAGE_EXTS and p.name[0].isdigit()
         }
-        missing = [i for i in range(1, FACES_PER_CUBE + 1) if str(i) not in imgs]
+        missing = [i for i in range(1, faces_per_cube + 1) if str(i) not in imgs]
         if missing:
             print(f"  WARNING: {d.name} - missing photos number {missing}, SKIPPING")
             continue
-        result.append((d.name, [imgs[str(i)] for i in range(1, FACES_PER_CUBE + 1)]))
+        result.append((d.name, [imgs[str(i)] for i in range(1, faces_per_cube + 1)]))
     return result
 
 
@@ -76,8 +87,9 @@ def main():
     ap = argparse.ArgumentParser(
         description=__doc__, formatter_class=argparse.RawTextHelpFormatter
     )
-    ap.add_argument("root", help="directory with cube_NNNN/ subdirectories")
+    ap.add_argument("root", help="images directory with <puzzle>/cube_NNNN/ subdirectories")
     ap.add_argument("--host", required=True, help="e.g. http://localhost:8080")
+    ap.add_argument("--puzzle", choices=list(SIDES), default="3x3", help="default: 3x3")
     ap.add_argument("--user", required=True, help="CVAT login")
     ap.add_argument(
         "--project-id",
@@ -98,7 +110,7 @@ def main():
         sys.exit(f"ERROR: --from ({args.lo}) > --to ({args.hi})")
 
     root = Path(args.root).expanduser().resolve()
-    cubes = find_cube_dirs(root, args.lo, args.hi)
+    cubes = find_cube_dirs(root, args.lo, args.hi, args.puzzle)
 
     rng = ""
     if args.lo is not None or args.hi is not None:
@@ -166,8 +178,16 @@ def main():
         )
         labels = [
             models.PatchedLabelRequest(name="face", attributes=[]),
-            *(models.PatchedLabelRequest(name=c, attributes=[position]) for c in FACES),
+            *(models.PatchedLabelRequest(name=c, attributes=[position]) for c in SIDES["3x3"]),
         ]
+        if args.puzzle == "clock":
+            labels = [
+                models.PatchedLabelRequest(name="clock", type="polygon", attributes=[]),
+                *(
+                    models.PatchedLabelRequest(name=hour, type="rectangle", attributes=[])
+                    for hour in HOURS
+                ),
+            ]
 
         for name, imgs in todo:
             if args.project_id is not None:

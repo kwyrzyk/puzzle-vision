@@ -6,12 +6,12 @@ stages:
     deps:
     - path: data/raw/annotations
       hash: md5
-      md5: b3116fc27958637c71e63a87f8e0ad12.dir
+      md5: 5774fb14ba3bcde3a888f50ae1577b89.dir
       size: 474166
       nfiles: 1
     - path: data/raw/images
       hash: md5
-      md5: 24b265333441194c67be79428f1c9c95.dir
+      md5: d50d2f4b1c152d5b01022630316e1ae2.dir
       size: 572774497
       nfiles: 210
     - path: puzzle_vision/annotations.py
@@ -20,8 +20,8 @@ stages:
       size: 3836
     - path: puzzle_vision/dataset.py
       hash: md5
-      md5: 8a6eaabbd5c3db0f953e3fedbe3f9a79
-      size: 2019
+      md5: 0d11cf695f2fda05c04f6ac85ca5a7a8
+      size: 2037
     - path: puzzle_vision/export
       hash: md5
       md5: edf070337a78e3d18b761e445301121d.dir

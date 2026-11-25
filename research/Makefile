@@ -72,6 +72,11 @@ create_environment:
 data: requirements
 	uv run dvc repro
 
+## Push data to the Google Drive remote (dvc push, workaround for the 400 Bad Request, when more than 150 directories are listed)
+.PHONY: push
+push:
+	$(PYTHON_INTERPRETER) scripts/gdrive_chunked.py push
+
 
 #################################################################################
 # Self Documenting Commands                                                     #

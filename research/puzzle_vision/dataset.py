@@ -7,7 +7,7 @@ from loguru import logger
 import typer
 
 from puzzle_vision.annotations import ImageAnnotation, parse_cvat
-from puzzle_vision.config import CVAT_ANNOTATIONS, PROCESSED_DATA_DIR, RAW_IMAGES_DIR
+from puzzle_vision.config import PROCESSED_DATA_DIR, PUZZLE_3X3, cvat_annotations, raw_images_dir
 from puzzle_vision.export import WRITERS, export
 from puzzle_vision.split import split_cubes
 
@@ -39,10 +39,10 @@ def main(
     output = output or PROCESSED_DATA_DIR / fmt.replace("-", "_")
     if output.exists():
         raise typer.BadParameter(f"{output} exists, remove it first")
-    images = annotated_images(CVAT_ANNOTATIONS)
+    images = annotated_images(cvat_annotations(PUZZLE_3X3))
     cube_ids = sorted({image.cube_id for image in images})
     split_of = split_cubes(cube_ids, train, val, seed=seed)
-    export(images, split_of, WRITERS[fmt](output), RAW_IMAGES_DIR)
+    export(images, split_of, WRITERS[fmt](output), raw_images_dir(PUZZLE_3X3))
     logger.success(f"Exported {len(images)} photos of {len(cube_ids)} cubes to {output}")
 
 

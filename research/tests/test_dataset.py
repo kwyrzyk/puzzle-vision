@@ -1,4 +1,4 @@
-"""Raw data: CVAT annotations agree with the scrambles in cubes.csv."""
+"""Raw data: CVAT annotations agree with the scrambles in metadata/3x3.csv."""
 
 import csv
 from pathlib import Path
@@ -7,7 +7,7 @@ from PIL import Image
 import pytest
 
 from puzzle_vision.annotations import ImageAnnotation, Sticker, parse_cvat, set_face_colors
-from puzzle_vision.config import CVAT_ANNOTATIONS, RAW_IMAGES_DIR, RAW_METADATA_DIR
+from puzzle_vision.config import PUZZLE_3X3, cvat_annotations, raw_images_dir, raw_metadata
 from puzzle_vision.cube import FACELETS_PER_FACE, CubeState, Face
 from puzzle_vision.export import shapes
 from puzzle_vision.export.yolo import read_labels, write_labels
@@ -16,7 +16,9 @@ from puzzle_vision.predictions import FACE_OF_CLASS
 EXIF_ORIENTATION = 0x0112
 TRANSPOSED = {5, 6, 7, 8}  # EXIF orientations that swap width and height
 
-with (RAW_METADATA_DIR / "cubes.csv").open(newline="") as f:
+CVAT_ANNOTATIONS = cvat_annotations(PUZZLE_3X3)
+
+with raw_metadata(PUZZLE_3X3).open(newline="") as f:
     SCRAMBLES = {row["cube_id"]: row["scramble"] for row in csv.DictReader(f)}
 
 # Errors found in the data, to be fixed in CVAT; strict xfail fails once fixed
@@ -64,7 +66,7 @@ def test_annotations_match_scramble(
 
 def test_images_match_annotated_size(images: dict[str, list[ImageAnnotation]]) -> None:
     for image in (image for cube in images.values() for image in cube):
-        with Image.open(RAW_IMAGES_DIR / image.cube_id / image.file_name) as photo:
+        with Image.open(raw_images_dir(PUZZLE_3X3) / image.cube_id / image.file_name) as photo:
             width, height = photo.size
             if photo.getexif().get(EXIF_ORIENTATION) in TRANSPOSED:
                 width, height = height, width

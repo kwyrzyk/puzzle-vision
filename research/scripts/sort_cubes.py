@@ -1,16 +1,18 @@
-"""Sort photos into cube directories.
+"""Sort photos into sample directories dst/<puzzle type>/cube_NNNN/.
 
 Photos are sorted from oldest to newest (EXIF DateTimeOriginal, falling back to mtime) and split
-into cube_NNNN/ directories of 6 photos, named in face order:
-    1_white 2_green 3_orange 4_blue 5_red 6_yellow
+into samples named in shooting order, per puzzle type (`type` in metadata/puzzles.csv):
+    3x3:   1_white 2_green 3_orange 4_blue 5_red 6_yellow
+    clock: 1_front 2_back
 
-Numbering continues after the highest existing cube_NNNN in dst, unless --start is given.
+Numbering continues after the highest existing cube_NNNN of the type, unless --start is given.
 
 Usage:
     python scripts/sort_cubes.py /path/to/photos data/raw/images
     python scripts/sort_cubes.py /path/to/photos data/raw/images --dry-run
     python scripts/sort_cubes.py /path/to/photos data/raw/images --copy  # copy instead of move
     python scripts/sort_cubes.py /path/to/photos data/raw/images --start 26
+    python scripts/sort_cubes.py /path/to/photos data/raw/images --puzzle clock
 """
 
 import argparse
@@ -22,14 +24,15 @@ import sys
 
 from PIL import ExifTags, Image
 
-FACES = ["white", "green", "orange", "blue", "red", "yellow"]
-FACES_PER_CUBE = len(FACES)
+# photo names in shooting order, per puzzle type (= directory in dst)
+SIDES = {
+    "3x3": ["white", "green", "orange", "blue", "red", "yellow"],
+    "clock": ["front", "back"],
+}
 
 IMAGE_EXTS = {".jpg", ".jpeg", ".png", ".heic", ".heif", ".tif", ".tiff"}
 
 EXIF_DATETIME_ORIGINAL = next(k for k, v in ExifTags.TAGS.items() if v == "DateTimeOriginal")
-
-CUBE_DIR_RE = re.compile(r"cube_(\d{4})")
 
 
 def _exif_time(path: Path) -> datetime | None:
@@ -60,10 +63,9 @@ def next_cube_number(dst: Path) -> int:
     """Return the number after the highest existing cube_NNNN in dst (1 if none)."""
     if not dst.is_dir():
         return 1
+    pattern = re.compile(r"cube_(\d{4})")
     numbers = [
-        int(m.group(1))
-        for p in dst.iterdir()
-        if p.is_dir() and (m := CUBE_DIR_RE.fullmatch(p.name))
+        int(m.group(1)) for p in dst.iterdir() if p.is_dir() and (m := pattern.fullmatch(p.name))
     ]
     return max(numbers, default=0) + 1
 
@@ -73,7 +75,8 @@ def main():
         description=__doc__, formatter_class=argparse.RawTextHelpFormatter
     )
     ap.add_argument("src", help="flat directory with photos")
-    ap.add_argument("dst", help="target directory, cube_NNNN/ directories are created in it")
+    ap.add_argument("dst", help="images directory, samples go to dst/<puzzle>/cube_NNNN/")
+    ap.add_argument("--puzzle", choices=list(SIDES), default="3x3", help="default: 3x3")
     ap.add_argument("--copy", action="store_true", help="copy instead of move (safer)")
     ap.add_argument("--dry-run", action="store_true", help="only print the plan, change nothing")
     ap.add_argument(
@@ -82,9 +85,11 @@ def main():
         help="number of the first cube (default: after the highest existing cube_NNNN in dst)",
     )
     args = ap.parse_args()
+    faces = SIDES[args.puzzle]
+    faces_per_cube = len(faces)
 
     src = Path(args.src).expanduser().resolve()
-    dst = Path(args.dst).expanduser().resolve()
+    dst = Path(args.dst).expanduser().resolve() / args.puzzle
 
     if not src.is_dir():
         sys.exit(f"ERROR: source directory does not exist: {src}")
@@ -96,9 +101,9 @@ def main():
         sys.exit(f"ERROR: no photos found in {src}")
 
     # Hard requirement: otherwise face assignment would shift for all following cubes
-    if n % FACES_PER_CUBE != 0:
+    if n % faces_per_cube != 0:
         sys.exit(
-            f"ERROR: found {n} photos, which is not a multiple of {FACES_PER_CUBE}. "
+            f"ERROR: found {n} photos, which is not a multiple of {faces_per_cube}. "
             f"Check for missing or extra photos. Not splitting, to keep face assignment intact."
         )
 
@@ -120,7 +125,7 @@ def main():
     # Oldest first; ties broken by file name (deterministic)
     timed.sort(key=lambda t: (t[0], t[1]))
 
-    n_cubes = n // FACES_PER_CUBE
+    n_cubes = n // faces_per_cube
     start = args.start if args.start is not None else next_cube_number(dst)
     if start < 1:
         sys.exit(f"ERROR: --start must be >= 1, got {start}")
@@ -130,7 +135,7 @@ def main():
     if existing:
         sys.exit(f"ERROR: target directories already exist: {', '.join(existing)}")
 
-    print(f"Photos: {n}  ->  cubes: {n_cubes} ({FACES_PER_CUBE} each)")
+    print(f"Photos: {n}  ->  cubes: {n_cubes} ({faces_per_cube} each)")
     print(f"Cubes: {cube_names[0]} .. {cube_names[-1]}")
     print("=" * 60)
 
@@ -139,7 +144,7 @@ def main():
 
     for cube_idx, cube_name in enumerate(cube_names):
         cube_dir = dst / cube_name
-        chunk = timed[cube_idx * FACES_PER_CUBE : (cube_idx + 1) * FACES_PER_CUBE]
+        chunk = timed[cube_idx * faces_per_cube : (cube_idx + 1) * faces_per_cube]
 
         print(f"\n{cube_name}/")
         if not args.dry_run:
@@ -149,7 +154,7 @@ def main():
             ext = srcpath.suffix.lower()
             if ext == ".jpeg":
                 ext = ".jpg"
-            newname = f"{face_idx + 1}_{FACES[face_idx]}{ext}"
+            newname = f"{face_idx + 1}_{faces[face_idx]}{ext}"
             print(f"  {dt:%Y-%m-%d %H:%M:%S}  {srcpath.name:30s} -> {newname}")
             if not args.dry_run:
                 op(str(srcpath), str(cube_dir / newname))
